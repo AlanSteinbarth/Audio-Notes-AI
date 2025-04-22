@@ -34,6 +34,8 @@ def transcribe_audio(audio_bytes):
         file=audio_file,
         model=AUDIO_TRANSCRIBE_MODEL,
         response_format="verbose_json",
+        user="streamlit",
+        language="pl",
     )
 
     return transcript.text
