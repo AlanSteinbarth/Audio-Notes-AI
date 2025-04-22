@@ -34,7 +34,7 @@ def transcribe_audio(audio_bytes) -> str:
     transcript = openai_client.audio.transcriptions.create(
         file=audio_file,
         model="whisper-1",
-        response_format="json",
+        response_format="text",
         user="streamlit",
         language="pl",
     )
