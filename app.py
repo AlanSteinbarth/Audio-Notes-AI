@@ -26,14 +26,15 @@ QDRANT_COLLECTION_NAME = "notes"
 def get_openai_client():
     return OpenAI(api_key=st.session_state["openai_api_key"])
 
-def transcribe_audio(audio_bytes):
+def transcribe_audio(audio_bytes) -> str:
     openai_client = get_openai_client()
     audio_file = BytesIO(audio_bytes)
     audio_file.name = "audio.mp3"
+
     transcript = openai_client.audio.transcriptions.create(
         file=audio_file,
-        model=AUDIO_TRANSCRIBE_MODEL,
-        response_format="verbose_json",
+        model="whisper-1",
+        response_format="json",
         user="streamlit",
         language="pl",
     )
