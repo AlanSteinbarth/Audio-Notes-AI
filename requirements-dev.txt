@@ -1,0 +1,30 @@
+# =============================================================================
+# ZALEŻNOŚCI DEWELOPERSKIE
+# =============================================================================
+# Dodatkowe narzędzia potrzebne do rozwoju aplikacji
+# Instalacja: pip install -r requirements-dev.txt
+
+# Testowanie
+pytest>=7.4.0                    # Framework do testowania
+pytest-cov>=4.1.0               # Pokrycie testów  
+pytest-mock>=3.11.0             # Mockowanie w testach
+
+# Formatowanie i linting
+black>=23.7.0                    # Formatowanie kodu Python
+flake8>=6.0.0                    # Sprawdzanie stylu kodu
+isort>=5.12.0                    # Sortowanie importów
+
+# Type checking
+mypy>=1.5.0                      # Sprawdzanie typów statycznych
+types-pyyaml>=6.0.0             # Type stubs dla PyYAML
+
+# Dokumentacja
+sphinx>=7.1.0                   # Generator dokumentacji
+sphinx-rtd-theme>=1.3.0         # Motyw dokumentacji
+
+# Debugging i profiling
+ipdb>=0.13.0                     # Debugger
+memory-profiler>=0.61.0         # Profilowanie pamięci
+
+# Pre-commit hooks
+pre-commit>=3.3.0               # Automatyczne sprawdzenia przed commit

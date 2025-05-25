@@ -1,6 +1,20 @@
-openai
-python-dotenv
-qdrant-client
-streamlit
-streamlit-audiorecorder
-pydub
+# =============================================================================
+# ZALEŻNOŚCI APLIKACJI AUDIO NOTATKI
+# =============================================================================
+
+# Główne zależności
+streamlit>=1.28.0                # Framework interfejsu użytkownika
+openai>=1.3.0                    # API OpenAI (Whisper, GPT, embeddingi)
+qdrant-client>=1.6.0             # Klient bazy danych wektorowych Qdrant
+python-dotenv>=1.0.0             # Zarządzanie zmiennymi środowiskowymi
+
+# Nagrywanie i przetwarzanie audio
+streamlit-audiorecorder>=0.0.5   # Komponent do nagrywania audio w Streamlit
+pydub>=0.25.1                    # Przetwarzanie plików audio
+
+# Eksport dokumentów
+fpdf>=2.7.6                      # Generowanie plików PDF
+python-docx>=0.8.11              # Tworzenie dokumentów DOCX
+
+# Utilities
+pyyaml>=6.0.1                    # Parsowanie plików YAML (dla konfiguracji)
