@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Dokumentacja
+    url: https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/blob/main/README.md
+    about: Przeczytaj pełną dokumentację projektu
+  - name: 🛡️ Zgłoś problem bezpieczeństwa
+    url: https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/blob/main/SECURITY.md
+    about: Zgłoś luki w zabezpieczeniach zgodnie z Security Policy
+  - name: 💬 Dyskusje społeczności
+    url: https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/discussions
+    about: Zadaj pytanie lub rozpocznij dyskusję ze społecznością
+  - name: 🏢 Enterprise Support
+    url: mailto:alan.steinbarth@gmail.com?subject=[ENTERPRISE]%20Audio%20Notatki%202.0.0
+    about: Profesjonalne wsparcie dla klientów Enterprise (SLA 2h)

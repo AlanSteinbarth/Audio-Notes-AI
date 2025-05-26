@@ -1,0 +1,75 @@
+---
+name: 🐛 Bug Report
+about: Zgłoś błąd aby pomóc nam poprawić aplikację
+title: '[BUG] '
+labels: ['bug', 'needs-triage']
+assignees: ['AlanSteinbarth']
+
+---
+
+## 🐛 Opis błędu
+<!-- Jasny i zwięzły opis problemu -->
+
+
+## 🔄 Kroki reprodukcji
+<!-- Szczegółowe kroki do odtworzenia błędu -->
+
+1. Przejdź do '...'
+2. Kliknij na '...'
+3. Wprowadź '...'
+4. Pojawia się błąd
+
+## ✅ Oczekiwane zachowanie
+<!-- Opisz co powinno się wydarzyć -->
+
+
+## ❌ Rzeczywiste zachowanie
+<!-- Opisz co faktycznie się dzieje -->
+
+
+## 📱 Środowisko
+<!-- Uzupełnij informacje o swoim środowisku -->
+
+- **OS:** [np. Windows 11, macOS 13, Ubuntu 22.04]
+- **Python:** [np. 3.11.5]
+- **Wersja aplikacji:** [np. 2.0.0]
+- **Przeglądarka:** [np. Chrome 120, Firefox 118]
+- **Streamlit:** [np. 1.28.0]
+
+## 📎 Dodatkowe informacje
+
+### Logi błędów
+<!-- Wklej logi z app.log lub konsoli przeglądarki -->
+```
+Wklej tutaj logi błędów
+```
+
+### Zrzuty ekranu
+<!-- Jeśli to możliwe, dodaj zrzuty ekranu pokazujące błąd -->
+
+
+### Konfiguracja
+<!-- Informacje o konfiguracji (bez kluczy API!) -->
+- **Używasz Qdrant Cloud czy lokalnie?**
+- **Jaki model OpenAI?**
+- **Czy problem występuje tylko z niektórymi plikami audio?**
+
+## 🔍 Dodatkowy kontekst
+<!-- Wszelkie inne informacje, które mogą pomóc -->
+
+
+## ✅ Checklist
+<!-- Zaznacz odpowiednie opcje -->
+
+- [ ] Sprawdziłem [FAQ w README](../README.md#🐛-rozwiązywanie-problemów)
+- [ ] Przeszukałem [istniejące issues](../../../issues)
+- [ ] Problem występuje w najnowszej wersji
+- [ ] Załączyłem wszystkie wymagane informacje
+- [ ] Usunąłem wszystkie wrażliwe dane (klucze API, hasła)
+
+---
+
+<!-- 
+Dziękujemy za zgłoszenie! 
+Postaramy się odpowiedzieć w ciągu 48 godzin.
+-->

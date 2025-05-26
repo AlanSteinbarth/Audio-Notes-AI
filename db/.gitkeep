@@ -1,0 +1,5 @@
+# Ten plik zapewnia, że folder db/ zostanie uwzględniony w repozytorium Git
+# Folder db/ jest przeznaczony na pliki bazy danych i cache'owanie lokalnych danych
+
+# Enterprise Version 2.0.0 - Database Structure
+# Przygotowana struktura dla przyszłego rozwoju aplikacji

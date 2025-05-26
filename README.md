@@ -1,12 +1,14 @@
-# Audio Notatki 🎙️
+# Audio Notatki 🎙️ - Enterprise Version 2.0.0
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
 [![OpenAI](https://img.shields.io/badge/OpenAI-Whisper-green.svg)](https://openai.com)
 [![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20DB-purple.svg)](https://qdrant.tech)
 [![Licencja](https://img.shields.io/badge/Licencja-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-2.0.0%20Enterprise-gold.svg)](CHANGELOG.md)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-success.svg)](.github/workflows/)
 
-Kompleksowa aplikacja do zarządzania notatkami głosowymi z wykorzystaniem sztucznej inteligencji. Nagraj, transkrybuj i przeszukuj swoje notatki semantycznie!
+**Enterprise-grade aplikacja do zarządzania notatkami głosowymi** z wykorzystaniem sztucznej inteligencji, przygotowana dla środowisk produkcyjnych. Nagraj, transkrybuj i przeszukuj swoje notatki semantycznie z gwarancją bezpieczeństwa i skalowalności!
 
 ## ✨ Funkcjonalności
 

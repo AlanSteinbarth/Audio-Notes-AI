@@ -3,12 +3,13 @@
 # =============================================================================
 """
 Kompleksowa aplikacja do zarządzania notatkami głosowymi z wykorzystaniem AI.
+*** ENTERPRISE VERSION 2.0.0 - KOLEJNA POPRAWIONA WERSJA ***
 
 AUTOR: Alan Steinbarth
 EMAIL: alan.steinbarth@gmail.com  
 GITHUB: https://github.com/AlanSteinbarth
-WERSJA: 1.2.0
-DATA: 2025-05-25
+WERSJA: 2.0.0
+DATA: 2025-05-26
 
 FUNKCJONALNOŚCI:
 - Nagrywanie notatek głosowych za pomocą mikrofonu
@@ -37,9 +38,6 @@ STRUKTURA PLIKU:
 # =============================================================================
 # IMPORTY I KONFIGURACJA
 # =============================================================================
-
-# Ostatnia stabilna wersja aplikacji Audio Notatki (backup)
-# Plik ten został zapisany przed wprowadzeniem ostatnich ulepszeń (AI tagi, retry, testy, uproszczenia)
 
 from io import BytesIO
 import streamlit as st
@@ -78,7 +76,8 @@ def log_error(e: Exception, context: str | None = None):
     
     Funkcja ta:
     - Loguje błędy do pliku app.log z pełnym stack trace
-    - Wyświetla błędy użytkownikowi w interfejsie Streamlit    - Dodaje opcjonalny kontekst do komunikatu błędu
+    - Wyświetla błędy użytkownikowi w interfejsie Streamlit
+    - Dodaje opcjonalny kontekst do komunikatu błędu
     
     Args:
         e (Exception): Wyjątek do zalogowania
@@ -96,7 +95,14 @@ def log_error(e: Exception, context: str | None = None):
 
 # Ustawienie lokalizacji na polską (dla formatowania dat i liczb)
 # Obsługuje różne systemy operacyjne z polskim locale
-locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
+try:
+    locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
+except locale.Error:
+    # Fallback dla systemów bez polskiego locale
+    try:
+        locale.setlocale(locale.LC_ALL, 'Polish_Poland.1250')
+    except locale.Error:
+        pass  # Użyj domyślnego locale
 
 # Wczytanie konfiguracji z pliku .env
 # Zawiera klucze API i adresy URL dla zewnętrznych usług
@@ -161,7 +167,8 @@ def transcribe_audio(audio_bytes):
             audio_file = BytesIO(audio_bytes)
             audio_file.name = "audio.mp3"
             transcript = openai_client.audio.transcriptions.create(
-                file=audio_file,                model=AUDIO_TRANSCRIBE_MODEL,
+                file=audio_file,
+                model=AUDIO_TRANSCRIBE_MODEL,
                 response_format="text",
             )
             logger.info("Transkrypcja audio zakończona pomyślnie")
@@ -379,7 +386,8 @@ def list_notes_from_db(query=None):
                         "title": note.payload.get("title", "Brak tytułu"),
                         "text": note.payload["text"],
                         "created_at": note.payload.get("created_at", "brak daty"),
-                        "score": round(note.score, 3),            })
+                        "score": round(note.score, 3),
+                    })
             return result
     except Exception as e:
         st.error(f"Wystąpił błąd podczas pobierania notatek: {str(e)}")
@@ -402,27 +410,31 @@ def generate_note_title(note_text):
     Returns:
         str: Wygenerowany tytuł notatki lub "Brak tytułu" w przypadku błędu
     """
-    with st.spinner("Generowanie tytułu..."):
-        openai_client = get_openai_client()
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Jesteś asystentem, który tworzy krótkie, zwięzłe tytuły na podstawie treści notatek. Tytuł powinien mieć maksymalnie 5 słów."
-                },
-                {
-                    "role": "user",
-                    "content": f"Wygeneruj krótki tytuł dla tej notatki: {note_text}"
-                }        ]
-        ,
-            max_tokens=50
-        )
-        content = None
-        if response and hasattr(response, "choices") and response.choices:
-            content = response.choices[0].message.content
-        if content:
-            return content.strip()
+    try:
+        with st.spinner("Generowanie tytułu..."):
+            openai_client = get_openai_client()
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Jesteś asystentem, który tworzy krótkie, zwięzłe tytuły na podstawie treści notatek. Tytuł powinien mieć maksymalnie 5 słów."
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Wygeneruj krótki tytuł dla tej notatki: {note_text}"
+                    }
+                ],
+                max_tokens=50
+            )
+            content = None
+            if response and hasattr(response, "choices") and response.choices:
+                content = response.choices[0].message.content
+            if content:
+                return content.strip()
+            return "Brak tytułu"
+    except Exception as e:
+        log_error(e, "Błąd podczas generowania tytułu")
         return "Brak tytułu"
 
 # =============================================================================
@@ -442,9 +454,10 @@ def main():
       2. Wyszukiwanie - semantyczne przeszukiwanie istniejących notatek
       3. Lista notatek - przeglądanie, edycja, usuwanie i eksport
     
-    Obsługuje również tryb edycji notatek z formularzem modalnym.    """
+    Obsługuje również tryb edycji notatek z formularzem modalnym.
+    """
     # Konfiguracja strony Streamlit z tytułem i layoutem
-    st.set_page_config(page_title="Audio Notatki", layout="centered")
+    st.set_page_config(page_title="Audio Notatki Enterprise 2.0.0", layout="centered")
 
     # Inicjalizacja stanu sesji dla przechowywania danych między interakcjami
     # Stan sesji przechowuje: audio, transkrypcję, edytowany tekst i hash MD5
@@ -455,8 +468,10 @@ def main():
     if "note_text" not in st.session_state:
         st.session_state["note_text"] = ""
     if "note_audio_text" not in st.session_state:
-        st.session_state["note_audio_text"] = ""    # Nagłówek główny aplikacji
-    st.title("Audio Notatki")
+        st.session_state["note_audio_text"] = ""
+
+    # Nagłówek główny aplikacji
+    st.title("🎙️ Audio Notatki - Enterprise 2.0.0")
     st.write("Nagraj notatkę głosową lub wyszukaj w swoich notatkach")
     
     # Inicjalizacja połączenia z bazą danych Qdrant
@@ -467,7 +482,9 @@ def main():
         st.stop()
 
     # Utworzenie trzech głównych zakładek interfejsu użytkownika
-    add_tab, search_tab, list_tab = st.tabs(["Dodaj notatkę", "Wyszukaj notatkę", "Lista notatek"])    # =========================================================================
+    add_tab, search_tab, list_tab = st.tabs(["Dodaj notatkę", "Wyszukaj notatkę", "Lista notatek"])
+
+    # =========================================================================
     # ZAKŁADKA 1: DODAWANIE NOTATEK
     # =========================================================================
     # Interfejs do nagrywania, transkrypcji i zapisywania nowych notatek
@@ -510,7 +527,9 @@ def main():
                     st.error("Notatka musi mieć co najmniej 5 znaków.")
                 else:
                     add_note_to_db(note_text=st.session_state["note_text"])
-                    st.toast("Notatka zapisana", icon="🎉")    # =========================================================================
+                    st.toast("Notatka zapisana", icon="🎉")
+
+    # =========================================================================
     # ZAKŁADKA 2: WYSZUKIWANIE SEMANTYCZNE NOTATEK
     # =========================================================================
     # Interfejs do przeszukiwania notatek przy użyciu wektorów embeddings
@@ -534,7 +553,9 @@ def main():
                         st.markdown(note["text"])
                         # Wyświetlenie oceny podobieństwa jeśli dostępna
                         if note["score"]:
-                            st.markdown(f':violet[Podobieństwo: {note["score"]}]')    # =========================================================================
+                            st.markdown(f':violet[Podobieństwo: {note["score"]}]')
+
+    # =========================================================================
     # ZAKŁADKA 3: LISTA WSZYSTKICH NOTATEK I ZARZĄDZANIE
     # =========================================================================
     # Interfejs do wyświetlania, edycji, usuwania i eksportu wszystkich notatek
@@ -582,9 +603,12 @@ def main():
                     st.download_button(
                         "Eksport TXT",
                         note["text"],
-                        file_name=f"notatka_{note['id']}.txt"
+                        file_name=f"notatka_{note['id']}.txt",
+                        key=f"txt_{note['id']}"
                     )
-                      # =====================================================                    # EKSPORT PDF - z bezpieczną obsługą polskich znaków
+                    
+                    # =====================================================
+                    # EKSPORT PDF - z bezpieczną obsługą polskich znaków
                     # =====================================================
                     # Tworzenie PDF z unikaniem problemów z polskimi znakami
                     try:
@@ -602,7 +626,8 @@ def main():
                             safe_title = f"Notatka {note['id']}"
                         if not safe_text.strip():
                             safe_text = "Treść zawiera znaki specjalne nieobsługiwane przez PDF"
-                          # Utworzenie treści PDF z bezpiecznym tekstem
+                        
+                        # Utworzenie treści PDF z bezpiecznym tekstem
                         pdf.multi_cell(0, 10, safe_title + "\n\n" + safe_text)
                         pdf_bytes = io.BytesIO()
                         
@@ -617,7 +642,8 @@ def main():
                         st.download_button(
                             "Eksport PDF",
                             data=pdf_bytes,
-                            file_name=f"notatka_{note['id']}.pdf"
+                            file_name=f"notatka_{note['id']}.pdf",
+                            key=f"pdf_{note['id']}"
                         )
                     except Exception as e:
                         logger.error(f"Błąd podczas generowania PDF: {str(e)}")
@@ -635,8 +661,11 @@ def main():
                     st.download_button(
                         "Eksport DOCX",
                         data=docx_bytes,
-                        file_name=f"notatka_{note['id']}.docx"
-                    )    # =========================================================================
+                        file_name=f"notatka_{note['id']}.docx",
+                        key=f"docx_{note['id']}"
+                    )
+
+    # =========================================================================
     # TRYB EDYCJI NOTATEK
     # =========================================================================
     # Formularz edycji wyświetlany gdy użytkownik kliknie "Edytuj" przy notatce

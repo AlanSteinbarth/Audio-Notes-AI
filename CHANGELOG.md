@@ -14,6 +14,35 @@ a projekt stosuje [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Aplikacja mobilna
 - Backup i synchronizacja w chmurze
 
+## [2.0.0] - 2025-05-26 - ENTERPRISE VERSION
+
+### Dodane
+- 🚀 **Enterprise Version 2.0.0** - Kompleksowe przygotowanie dla środowisk produkcyjnych
+- 🔄 **CI/CD Pipeline** - GitHub Actions z automatycznymi testami i deploymentem
+- 🛡️ **Security Scanning** - Automatyczne skanowanie bezpieczeństwa z bandit i safety
+- 📊 **Code Quality** - Automatyczne sprawdzanie jakości kodu z flake8 i pylint
+- 🧪 **Matrix Testing** - Testy na Python 3.8-3.11 i różnych systemach operacyjnych
+- 📋 **Issue Templates** - Szablony dla bug reportów, feature requestów i pytań
+- 🔀 **Pull Request Template** - Standaryzowany szablon dla PR
+- 📦 **Auto Release** - Automatyczne tworzenie releasów na podstawie tagów
+- 🗂️ **Database Structure** - Przygotowana struktura folderów dla bazy danych
+- 📚 **Enterprise Documentation** - Rozszerzona dokumentacja SECURITY.md i CODE_OF_CONDUCT.md
+- 🏷️ **Semantic Versioning** - Pełne wsparcie dla semantic versioning z tagami
+- 🌐 **GitHub Integration** - Kompletna integracja z ekosystemem GitHub
+
+### Zmienione
+- Zaktualizowano wersję aplikacji z 1.2.0 na 2.0.0
+- Rozszerzono requirements.txt o narzędzia enterprise (pytest, flake8, bandit, safety)
+- Przepisano dokumentację README.md z Enterprise focus
+- Dodano informacje o Enterprise features w całej dokumentacji
+
+### Techniczne Usprawnienia
+- Clean git history z semantic commit messages
+- Przygotowanie do tagowania v2.0.0 i v2.1.0
+- Struktura projektu gotowa dla środowisk CI/CD
+- Automatyzacja procesów developerskich
+- Konfiguracja dla Matrix Testing
+
 ## [1.2.0] - 2025-05-25
 
 ### Dodane

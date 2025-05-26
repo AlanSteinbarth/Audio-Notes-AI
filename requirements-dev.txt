@@ -1,30 +1,37 @@
 # =============================================================================
-# ZALEŻNOŚCI DEWELOPERSKIE
+# ZALEŻNOŚCI DEWELOPERSKIE - ENTERPRISE VERSION 2.0.0
 # =============================================================================
-# Dodatkowe narzędzia potrzebne do rozwoju aplikacji
+# Dodatkowe narzędzia potrzebne do rozwoju aplikacji enterprise-grade
 # Instalacja: pip install -r requirements-dev.txt
 
-# Testowanie
+# Testing Framework & Coverage
 pytest>=7.4.0                    # Framework do testowania
 pytest-cov>=4.1.0               # Pokrycie testów  
 pytest-mock>=3.11.0             # Mockowanie w testach
+pytest-xdist>=3.3.1             # Parallel test execution
+pytest-benchmark>=4.0.0         # Performance benchmarking
+coverage>=7.3.0                 # Advanced code coverage
 
-# Formatowanie i linting
+# Code Quality & Linting
 black>=23.7.0                    # Formatowanie kodu Python
 flake8>=6.0.0                    # Sprawdzanie stylu kodu
 isort>=5.12.0                    # Sortowanie importów
+pylint>=2.17.5                  # Advanced code analysis
+
+# Security Scanning
+bandit>=1.7.5                   # Python security linter
+safety>=2.4.0                   # Known vulnerabilities scanner
+semgrep>=1.38.0                 # Static analysis security
 
 # Type checking
 mypy>=1.5.0                      # Sprawdzanie typów statycznych
 types-pyyaml>=6.0.0             # Type stubs dla PyYAML
+types-requests>=2.31.0          # Type stubs dla requests
 
-# Dokumentacja
+# Documentation
 sphinx>=7.1.0                   # Generator dokumentacji
 sphinx-rtd-theme>=1.3.0         # Motyw dokumentacji
 
-# Debugging i profiling
-ipdb>=0.13.0                     # Debugger
-memory-profiler>=0.61.0         # Profilowanie pamięci
-
-# Pre-commit hooks
+# Development Utilities
 pre-commit>=3.3.0               # Automatyczne sprawdzenia przed commit
+python-dotenv>=1.0.0            # Environment variables management
