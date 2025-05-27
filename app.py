@@ -3,13 +3,13 @@
 # =============================================================================
 """
 Kompleksowa aplikacja do zarządzania notatkami głosowymi z wykorzystaniem AI.
-*** ENTERPRISE VERSION 2.0.0 - KOLEJNA POPRAWIONA WERSJA ***
+*** ENTERPRISE VERSION 2.0.0 - STABILNA WERSJA ***
 
 AUTOR: Alan Steinbarth
 EMAIL: alan.steinbarth@gmail.com  
 GITHUB: https://github.com/AlanSteinbarth
 WERSJA: 2.0.0
-DATA: 2025-05-26
+DATA: 2025-05-27
 
 FUNKCJONALNOŚCI:
 - Nagrywanie notatek głosowych za pomocą mikrofonu
@@ -24,7 +24,7 @@ TECHNOLOGIE:
 - Streamlit: Framework dla interfejsu webowego
 - OpenAI API: Transkrypcja (Whisper) i embeddingi (text-embedding-3-large)
 - Qdrant: Baza danych wektorowych do przechowywania embeddingów
-- FPDF/python-docx: Generowanie dokumentów PDF i DOCX
+- FPDF2/python-docx: Generowanie dokumentów PDF i DOCX
 - audiorecorder: Komponent do nagrywania audio w Streamlit
 
 STRUKTURA PLIKU:
@@ -53,15 +53,12 @@ from qdrant_client.models import PointStruct, Distance, VectorParams
 from datetime import datetime
 from docx import Document
 from fpdf import FPDF
-import sys
-import traceback
 
 # =============================================================================
 # KONFIGURACJA LOGOWANIA I OBSŁUGA BŁĘDÓW
 # =============================================================================
 
 # Konfiguracja logowania do pliku z rotacją i formatowaniem
-# Zapisuje wszystkie błędy, ostrzeżenia i informacje o działaniu aplikacji
 logging.basicConfig(
     filename="app.log",
     level=logging.INFO,
@@ -73,11 +70,6 @@ logger = logging.getLogger('AudioNotatki')
 def log_error(e: Exception, context: str | None = None):
     """
     Centralna funkcja do logowania błędów z wyświetlaniem w interfejsie.
-    
-    Funkcja ta:
-    - Loguje błędy do pliku app.log z pełnym stack trace
-    - Wyświetla błędy użytkownikowi w interfejsie Streamlit
-    - Dodaje opcjonalny kontekst do komunikatu błędu
     
     Args:
         e (Exception): Wyjątek do zalogowania
@@ -94,22 +86,18 @@ def log_error(e: Exception, context: str | None = None):
 # =============================================================================
 
 # Ustawienie lokalizacji na polską (dla formatowania dat i liczb)
-# Obsługuje różne systemy operacyjne z polskim locale
 try:
     locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
 except locale.Error:
-    # Fallback dla systemów bez polskiego locale
     try:
         locale.setlocale(locale.LC_ALL, 'Polish_Poland.1250')
     except locale.Error:
-        pass  # Użyj domyślnego locale
+        pass  # Kontynuuj bez polskiego locale
 
 # Wczytanie konfiguracji z pliku .env
-# Zawiera klucze API i adresy URL dla zewnętrznych usług
 env = dotenv_values(".env")
 
 # Walidacja obecności wszystkich wymaganych zmiennych środowiskowych
-# Aplikacja nie może działać bez dostępu do OpenAI API i bazy Qdrant
 required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY", "OPENAI_API_KEY"]
 missing_vars = [var for var in required_env_vars if var not in env or not env[var]]
 if missing_vars:
@@ -134,23 +122,12 @@ QDRANT_COLLECTION_NAME = "notes"             # Nazwa kolekcji w bazie wektorowej
 # =============================================================================
 
 def get_openai_client():
-    """
-    Tworzy i zwraca klienta OpenAI z kluczem API z zmiennych środowiskowych.
-    
-    Returns:
-        OpenAI: Skonfigurowany klient OpenAI do komunikacji z API
-    """
+    """Tworzy i zwraca klienta OpenAI z kluczem API z zmiennych środowiskowych."""
     return OpenAI(api_key=env["OPENAI_API_KEY"])
 
 def transcribe_audio(audio_bytes):
     """
     Transkrypcja pliku audio za pomocą OpenAI Whisper API.
-    
-    Funkcja ta:
-    - Przesyła dane audio do API OpenAI Whisper
-    - Wyświetla spinner z informacją o postępie
-    - Zwraca tekst transkrypcji w języku polskim
-    - Obsługuje błędy komunikacji z API
     
     Args:
         audio_bytes: Surowe dane audio w formacie WAV
@@ -182,12 +159,6 @@ def get_qdrant_client():
     """
     Tworzy i zwraca klienta bazy danych Qdrant z cache'owaniem.
     
-    Funkcja ta:
-    - Łączy się z bazą danych Qdrant używając URL i klucza API
-    - Cache'uje połączenie w sesji Streamlit dla wydajności
-    - Loguje informacje o pomyślnym połączeniu
-    - Zatrzymuje aplikację w przypadku błędu połączenia
-    
     Returns:
         QdrantClient: Skonfigurowany klient bazy danych Qdrant
     """
@@ -205,12 +176,6 @@ def get_qdrant_client():
 def initialize_collection():
     """
     Inicjalizuje kolekcję w bazie Qdrant z odpowiednią konfiguracją wektorów.
-    
-    Funkcja ta:
-    - Sprawdza czy kolekcja już istnieje
-    - Tworzy nową kolekcję jeśli nie istnieje
-    - Konfiguruje parametry wektorów (wymiar, metryka odległości)
-    - Zwraca klienta gotowego do użycia
     
     Returns:
         QdrantClient: Klient z zainicjalizowaną kolekcją
@@ -238,10 +203,6 @@ def get_embeddings(text: str) -> list[float]:
     """
     Generuje wektor embeddings dla podanego tekstu przy użyciu OpenAI API.
     
-    Wykorzystuje model text-embedding-3-large do konwersji tekstu na wektor
-    liczbowy o wymiarze 3072, który może być wykorzystany do semantycznego
-    wyszukiwania podobnych tekstów.
-    
     Args:
         text (str): Tekst do przekonwertowania na embedding
         
@@ -264,21 +225,12 @@ def add_note_to_db(note_text, note_id=None):
     """
     Dodaje nową notatkę lub aktualizuje istniejącą w bazie danych Qdrant.
     
-    Funkcja ta:
-    - Generuje automatycznie ID dla nowych notatek lub używa podanego ID dla aktualizacji
-    - Tworzy tytuł notatki przy użyciu OpenAI GPT
-    - Generuje wektor embeddings dla treści notatki
-    - Zapisuje notatkę z metadanymi (tytuł, data utworzenia) w bazie Qdrant
-    
     Args:
         note_text (str): Treść notatki do zapisania
         note_id (int, optional): ID notatki (dla aktualizacji) lub None (dla nowej notatki)
         
     Returns:
         int: ID zapisanej notatki
-        
-    Raises:
-        Exception: W przypadku błędów związanych z zapisem do bazy danych
     """
     try:
         qdrant_client = get_qdrant_client()
@@ -319,12 +271,6 @@ def delete_note_from_db(note_id):
     """
     Usuwa notatkę o podanym ID z bazy danych Qdrant.
     
-    Funkcja ta:
-    - Łączy się z bazą danych Qdrant
-    - Usuwa punkt (notatkę) o określonym ID z kolekcji
-    - Wyświetla powiadomienie o sukcesie lub błędzie
-    - Loguje ewentualne błędy do pliku logów
-    
     Args:
         note_id (int): Unikalny identyfikator notatki do usunięcia
     """
@@ -341,20 +287,11 @@ def list_notes_from_db(query=None):
     """
     Pobiera listę notatek z bazy danych z opcjonalnym wyszukiwaniem semantycznym.
     
-    Funkcja ta może działać w dwóch trybach:
-    1. Bez query - pobiera wszystkie notatki (do 20) z bazy danych
-    2. Z query - wykonuje semantyczne wyszukiwanie na podstawie podobieństwa embeddingów
-    
     Args:
         query (str, optional): Tekst zapytania do wyszukiwania semantycznego
         
     Returns:
-        list[dict]: Lista słowników z danymi notatek zawierająca:
-            - id: Unikalny identyfikator notatki
-            - title: Tytuł notatki  
-            - text: Treść notatki
-            - created_at: Data utworzenia
-            - score: Wynik podobieństwa (tylko dla wyszukiwania) lub None
+        list[dict]: Lista słowników z danymi notatek
     """
     try:
         qdrant_client = get_qdrant_client()
@@ -398,12 +335,6 @@ def generate_note_title(note_text):
     """
     Generuje krótki, opisowy tytuł dla notatki przy użyciu OpenAI GPT-3.5.
     
-    Funkcja ta:
-    - Wysyła treść notatki do API OpenAI z instrukcją utworzenia tytułu
-    - Ogranicza tytuł do maksymalnie 5 słów dla czytelności
-    - Wyświetla spinner podczas generowania tytułu
-    - Zwraca domyślny tytuł w przypadku błędu API
-    
     Args:
         note_text (str): Treść notatki do przeanalizowania
         
@@ -442,25 +373,11 @@ def generate_note_title(note_text):
 # =============================================================================
 
 def main():
-    """
-    Główna funkcja aplikacji Streamlit zawierająca cały interfejs użytkownika.
-    
-    Funkcja ta inicjalizuje:
-    - Konfigurację strony Streamlit
-    - Stan sesji dla przechowywania danych audio i notatek
-    - Połączenie z bazą danych Qdrant
-    - Trzy główne zakładki interfejsu:
-      1. Dodawanie notatek - nagrywanie, transkrypcja, edycja i zapis
-      2. Wyszukiwanie - semantyczne przeszukiwanie istniejących notatek
-      3. Lista notatek - przeglądanie, edycja, usuwanie i eksport
-    
-    Obsługuje również tryb edycji notatek z formularzem modalnym.
-    """
+    """Główna funkcja aplikacji Streamlit zawierająca cały interfejs użytkownika."""
     # Konfiguracja strony Streamlit z tytułem i layoutem
-    st.set_page_config(page_title="Audio Notatki Enterprise 2.0.0", layout="centered")
+    st.set_page_config(page_title="Audio Notatki", layout="centered")
 
     # Inicjalizacja stanu sesji dla przechowywania danych między interakcjami
-    # Stan sesji przechowuje: audio, transkrypcję, edytowany tekst i hash MD5
     if "note_audio_bytes_md5" not in st.session_state:
         st.session_state["note_audio_bytes_md5"] = None
     if "note_audio_bytes" not in st.session_state:
@@ -471,7 +388,7 @@ def main():
         st.session_state["note_audio_text"] = ""
 
     # Nagłówek główny aplikacji
-    st.title("🎙️ Audio Notatki - Enterprise 2.0.0")
+    st.title("Audio Notatki")
     st.write("Nagraj notatkę głosową lub wyszukaj w swoich notatkach")
     
     # Inicjalizacja połączenia z bazą danych Qdrant
@@ -487,7 +404,6 @@ def main():
     # =========================================================================
     # ZAKŁADKA 1: DODAWANIE NOTATEK
     # =========================================================================
-    # Interfejs do nagrywania, transkrypcji i zapisywania nowych notatek
     with add_tab:
         # Komponent do nagrywania audio z konfigurowalnymi komunikatami
         note_audio = audiorecorder(
@@ -532,7 +448,6 @@ def main():
     # =========================================================================
     # ZAKŁADKA 2: WYSZUKIWANIE SEMANTYCZNE NOTATEK
     # =========================================================================
-    # Interfejs do przeszukiwania notatek przy użyciu wektorów embeddings
     with search_tab:
         # Pole tekstowe do wprowadzenia zapytania wyszukiwania
         query = st.text_input("Wyszukaj notatkę")
@@ -558,7 +473,6 @@ def main():
     # =========================================================================
     # ZAKŁADKA 3: LISTA WSZYSTKICH NOTATEK I ZARZĄDZANIE
     # =========================================================================
-    # Interfejs do wyświetlania, edycji, usuwania i eksportu wszystkich notatek
     with list_tab:
         st.subheader("Wszystkie notatki")
         
@@ -568,107 +482,102 @@ def main():
         # Obsługa przypadku pustej bazy danych
         if not notes:
             st.info("Brak notatek w bazie.")
-            
-        # Iteracja przez wszystkie notatki z opcjami zarządzania
-        for note in notes:
-            with st.container(border=True):
-                # Wyświetlenie tytułu, treści i daty utworzenia
-                st.markdown(f"### {note['title']}")
-                st.markdown(note["text"])
-                st.caption(f"Dodano: {note['created_at']}")
-                
-                # Trzy kolumny z przyciskami akcji
-                col1, col2, col3 = st.columns([1,1,2])
-                
-                # Kolumna 1: Przycisk usuwania notatki
-                with col1:
-                    if st.button("Usuń", key=f"del_{note['id']}"):
-                        delete_note_from_db(note['id'])
-                        st.rerun()
-                
-                # Kolumna 2: Przycisk edycji notatki
-                with col2:
-                    if st.button("Edytuj", key=f"edit_{note['id']}"):
-                        # Przygotowanie danych do edycji w session state
-                        st.session_state["edit_note_id"] = note['id']
-                        st.session_state["edit_note_text"] = note['text']
-                        st.session_state["edit_note_title"] = note['title']
-                        st.rerun()
-                
-                # Kolumna 3: Opcje eksportu w różnych formatach
-                with col3:
-                    # =====================================================
-                    # EKSPORT TXT - prosty format tekstowy
-                    # =====================================================
-                    st.download_button(
-                        "Eksport TXT",
-                        note["text"],
-                        file_name=f"notatka_{note['id']}.txt",
-                        key=f"txt_{note['id']}"
-                    )
+        else:
+            # Iteracja przez wszystkie notatki z opcjami zarządzania
+            for note in notes:
+                with st.container(border=True):
+                    # Wyświetlenie tytułu, treści i daty utworzenia
+                    st.markdown(f"### {note['title']}")
+                    st.markdown(note["text"])
+                    st.caption(f"Dodano: {note['created_at']}")
                     
-                    # =====================================================
-                    # EKSPORT PDF - z bezpieczną obsługą polskich znaków
-                    # =====================================================
-                    # Tworzenie PDF z unikaniem problemów z polskimi znakami
-                    try:
-                        pdf = FPDF()
-                        pdf.add_page()
-                        pdf.set_font("helvetica", size=12)
-                        
-                        # Bezpieczne usunięcie wszystkich znaków nieobsługiwanych przez FPDF
-                        # Konwersja na ASCII z ignorowaniem problemowych znaków
-                        safe_title = note["title"].encode('ascii', 'ignore').decode('ascii')
-                        safe_text = note["text"].encode('ascii', 'ignore').decode('ascii')
-                        
-                        # Jeśli tytuł lub tekst są puste po konwersji, użyj zastępczych wartości
-                        if not safe_title.strip():
-                            safe_title = f"Notatka {note['id']}"
-                        if not safe_text.strip():
-                            safe_text = "Treść zawiera znaki specjalne nieobsługiwane przez PDF"
-                        
-                        # Utworzenie treści PDF z bezpiecznym tekstem
-                        pdf.multi_cell(0, 10, safe_title + "\n\n" + safe_text)
-                        pdf_bytes = io.BytesIO()
-                        
-                        # Generowanie pliku PDF
-                        pdf_output = pdf.output()
-                        if isinstance(pdf_output, str):
-                            pdf_bytes.write(pdf_output.encode('latin1'))
-                        else:
-                            pdf_bytes.write(pdf_output)
-                        pdf_bytes.seek(0)
-                        
+                    # Trzy kolumny z przyciskami akcji
+                    col1, col2, col3 = st.columns([1,1,2])
+                    
+                    # Kolumna 1: Przycisk usuwania notatki
+                    with col1:
+                        if st.button("Usuń", key=f"del_{note['id']}"):
+                            delete_note_from_db(note['id'])
+                            st.rerun()
+                    
+                    # Kolumna 2: Przycisk edycji notatki
+                    with col2:
+                        if st.button("Edytuj", key=f"edit_{note['id']}"):
+                            # Przygotowanie danych do edycji w session state
+                            st.session_state["edit_note_id"] = note['id']
+                            st.session_state["edit_note_text"] = note['text']
+                            st.session_state["edit_note_title"] = note['title']
+                            st.rerun()
+                    
+                    # Kolumna 3: Opcje eksportu w różnych formatach
+                    with col3:
+                        # EKSPORT TXT - prosty format tekstowy
                         st.download_button(
-                            "Eksport PDF",
-                            data=pdf_bytes,
-                            file_name=f"notatka_{note['id']}.pdf",
-                            key=f"pdf_{note['id']}"
+                            "Eksport TXT",
+                            note["text"],
+                            file_name=f"notatka_{note['id']}.txt",
+                            key=f"txt_{note['id']}"
                         )
-                    except Exception as e:
-                        logger.error(f"Błąd podczas generowania PDF: {str(e)}")
-                        st.error("Nie udało się wygenerować pliku PDF. Spróbuj eksportu DOCX lub TXT.")
-                    
-                    # =====================================================
-                    # EKSPORT DOCX - pełne wsparcie dla polskich znaków
-                    # =====================================================
-                    doc = Document()
-                    doc.add_heading(note["title"], 0)
-                    doc.add_paragraph(note["text"])
-                    docx_bytes = io.BytesIO()
-                    doc.save(docx_bytes)
-                    docx_bytes.seek(0)
-                    st.download_button(
-                        "Eksport DOCX",
-                        data=docx_bytes,
-                        file_name=f"notatka_{note['id']}.docx",
-                        key=f"docx_{note['id']}"
-                    )
+                        
+                        # EKSPORT PDF - z bezpieczną obsługą polskich znaków
+                        try:
+                            pdf = FPDF()
+                            pdf.add_page()
+                            pdf.set_font("helvetica", size=12)
+                            
+                            # Bezpieczne usunięcie znaków nieobsługiwanych przez FPDF
+                            safe_title = note["title"].encode('ascii', 'ignore').decode('ascii')
+                            safe_text = note["text"].encode('ascii', 'ignore').decode('ascii')
+                            
+                            # Jeśli tytuł lub tekst są puste po konwersji, użyj zastępczych wartości
+                            if not safe_title.strip():
+                                safe_title = f"Notatka {note['id']}"
+                            if not safe_text.strip():
+                                safe_text = "Treść zawiera znaki specjalne nieobsługiwane przez PDF"
+                            
+                            # Utworzenie treści PDF z bezpiecznym tekstem
+                            pdf.multi_cell(0, 10, safe_title + "\n\n" + safe_text)
+                            pdf_bytes = io.BytesIO()
+                            
+                            # Generowanie pliku PDF
+                            pdf_output = pdf.output()
+                            if isinstance(pdf_output, str):
+                                pdf_bytes.write(pdf_output.encode('latin1'))
+                            else:
+                                pdf_bytes.write(pdf_output)
+                            pdf_bytes.seek(0)
+                            
+                            st.download_button(
+                                "Eksport PDF",
+                                data=pdf_bytes,
+                                file_name=f"notatka_{note['id']}.pdf",
+                                key=f"pdf_{note['id']}"
+                            )
+                        except Exception as e:
+                            logger.error(f"Błąd podczas generowania PDF: {str(e)}")
+                            st.error("Nie udało się wygenerować pliku PDF. Spróbuj eksportu DOCX lub TXT.")
+                        
+                        # EKSPORT DOCX - pełne wsparcie dla polskich znaków
+                        try:
+                            doc = Document()
+                            doc.add_heading(note["title"], 0)
+                            doc.add_paragraph(note["text"])
+                            docx_bytes = io.BytesIO()
+                            doc.save(docx_bytes)
+                            docx_bytes.seek(0)
+                            st.download_button(
+                                "Eksport DOCX",
+                                data=docx_bytes,
+                                file_name=f"notatka_{note['id']}.docx",
+                                key=f"docx_{note['id']}"
+                            )
+                        except Exception as e:
+                            logger.error(f"Błąd podczas generowania DOCX: {str(e)}")
+                            st.error("Nie udało się wygenerować pliku DOCX.")
 
     # =========================================================================
     # TRYB EDYCJI NOTATEK
     # =========================================================================
-    # Formularz edycji wyświetlany gdy użytkownik kliknie "Edytuj" przy notatce
     if "edit_note_id" in st.session_state:
         with st.form("edit_note_form", clear_on_submit=True):
             st.subheader("Edytuj notatkę")
@@ -677,30 +586,38 @@ def main():
             new_text = st.text_area("Treść notatki", value=st.session_state["edit_note_text"])
             
             # Przycisk zapisania zmian z walidacją
-            if st.form_submit_button("Zapisz zmiany"):
-                if not new_text or len(new_text.strip()) < 5:
-                    st.error("Notatka musi mieć co najmniej 5 znaków.")
-                else:
-                    # Aktualizacja notatki przez ponowne wywołanie add_note_to_db z ID
-                    add_note_to_db(note_text=new_text, note_id=st.session_state["edit_note_id"])
-                    st.toast("Notatka zaktualizowana", icon="✏️")
-                    del st.session_state["edit_note_id"]
-                    st.rerun()
+            col1, col2 = st.columns([1, 1])
             
-            # Przycisk anulowania edycji
-            if st.form_submit_button("Anuluj"):
-                del st.session_state["edit_note_id"]
-                st.rerun()
+            with col1:
+                if st.form_submit_button("Zapisz zmiany"):
+                    if len(new_text.strip()) < 5:
+                        st.error("Notatka musi mieć co najmniej 5 znaków.")
+                    else:
+                        try:
+                            add_note_to_db(note_text=new_text, note_id=st.session_state["edit_note_id"])
+                            st.toast("Notatka zaktualizowana", icon="✅")
+                            # Usunięcie stanu edycji po zapisaniu
+                            for key in ["edit_note_id", "edit_note_text", "edit_note_title"]:
+                                if key in st.session_state:
+                                    del st.session_state[key]
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Błąd podczas zapisywania: {str(e)}")
+            
+            with col2:
+                if st.form_submit_button("Anuluj"):
+                    # Usunięcie stanu edycji bez zapisywania
+                    for key in ["edit_note_id", "edit_note_text", "edit_note_title"]:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.rerun()
 
 # =============================================================================
 # URUCHOMIENIE GŁÓWNEJ APLIKACJI
 # =============================================================================
-# Blok główny wykonywany tylko przy bezpośrednim uruchomieniu skryptu
 if __name__ == "__main__":
     try:
-        # Wywołanie głównej funkcji aplikacji Streamlit
         main()
     except Exception as e:
-        # Globalna obsługa błędów krytycznych z logowaniem
         log_error(e, "Krytyczny błąd aplikacji")
         st.error("Wystąpił nieoczekiwany błąd. Szczegóły zostały zapisane w pliku logów.")
