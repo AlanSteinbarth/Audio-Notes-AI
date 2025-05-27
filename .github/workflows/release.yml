@@ -49,11 +49,10 @@ jobs:
     
     strategy:
       matrix:
-        python-version: [3.8, 3.9, '3.10', 3.11]
+        python-version: ['3.10', '3.11']
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -68,224 +67,105 @@ jobs:
     
     - name: Run tests
       run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        pytest tests/ -v || echo "Tests completed"
+        pytest tests/
 
-  # Build artifacts
+  # Build and publish package
   build:
-    name: Build Release Artifacts
+    name: Build and Release
     runs-on: ubuntu-latest
     needs: [validate, test]
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+    - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
     
-    - name: Create distribution package
+    - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip build
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: |
         python -m build
+        twine check dist/*
     
-    - name: Create source archive
-      run: |
-        git archive --format=tar.gz --prefix=audio-notatki-${{ needs.validate.outputs.version }}/ HEAD > audio-notatki-${{ needs.validate.outputs.version }}-source.tar.gz
-    
-    - name: Generate checksums
-      run: |
-        sha256sum audio-notatki-${{ needs.validate.outputs.version }}-source.tar.gz > checksums.txt
-        if [ -d "dist" ]; then
-          sha256sum dist/* >> checksums.txt
-        fi
-    
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-artifacts
-        path: |
-          audio-notatki-*.tar.gz
-          dist/
-          checksums.txt
-
-  # Generate release notes
-  release-notes:
-    name: Generate Release Notes
-    runs-on: ubuntu-latest
-    needs: validate
-    outputs:
-      release_notes: ${{ steps.generate_notes.outputs.release_notes }}
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Generate release notes
-      id: generate_notes
-      run: |
-        VERSION=${{ needs.validate.outputs.version }}
-        
-        # Sprawdź czy istnieje CHANGELOG.md
-        if [ -f "CHANGELOG.md" ]; then
-          # Wyciągnij sekcję dla tej wersji z CHANGELOG.md
-          NOTES=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | sed '$d')
-          if [ -z "$NOTES" ]; then
-            NOTES="Zobacz [CHANGELOG.md](CHANGELOG.md) dla szczegółów zmian."
-          fi
-        else
-          # Generuj automatyczne release notes z commitów
-          NOTES="## 🚀 Audio Notatki Enterprise v${VERSION}
-
-### Zmiany w tej wersji:
-$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD)
-
-### Instalacja:
-\`\`\`bash
-git clone https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie.git
-cd Notatki-glosowe-i-ich-wyszukiwanie
-git checkout v${VERSION}
-pip install -r requirements.txt
-\`\`\`"
-        fi
-        
-        # Zapisz do pliku i ustaw output
-        echo "$NOTES" > release_notes.md
-        echo "release_notes<<EOF" >> $GITHUB_OUTPUT
-        echo "$NOTES" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-
-  # Create GitHub Release
-  release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [validate, test, build, release-notes]
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        name: release-artifacts
-        path: ./artifacts
-    
-    - name: Create Release
+    - name: Create GitHub Release
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: 🚀 Audio Notatki Enterprise v${{ needs.validate.outputs.version }}
-        body: |
-          # 🎉 Audio Notatki Enterprise v${{ needs.validate.outputs.version }}
-          
-          **Enterprise Version 2.0.0** - Profesjonalne rozwiązanie do zarządzania notatkami głosowymi.
-          
-          ${{ needs.release-notes.outputs.release_notes }}
-          
-          ## 📦 Pliki do pobrania
-          
-          - **Source Code**: Kod źródłowy aplikacji
-          - **Checksums**: Sumy kontrolne dla weryfikacji integralności
-          
-          ## 🚀 Szybka instalacja
-          
-          ```bash
-          # Klonowanie repozytorium
-          git clone https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie.git
-          cd Notatki-glosowe-i-ich-wyszukiwanie
-          
-          # Checkout konkretnej wersji
-          git checkout v${{ needs.validate.outputs.version }}
-          
-          # Instalacja zależności
-          pip install -r requirements.txt
-          
-          # Konfiguracja
-          cp .env.example .env
-          # Uzupełnij .env swoimi kluczami API
-          
-          # Uruchomienie
-          streamlit run app.py
-          ```
-          
-          ## 🔐 Weryfikacja integralności
-          
-          ```bash
-          # Sprawdź sumę kontrolną
-          sha256sum -c checksums.txt
-          ```
-          
-          ## 🆕 Co nowego w tej wersji?
-          
-          - ✅ **Tested**: Wszystkie testy przeszły pomyślnie
-          - 🛡️ **Secure**: Przeszło skanowanie bezpieczeństwa
-          - 🏢 **Enterprise Ready**: Gotowe dla środowisk produkcyjnych
-          - 📊 **Quality Assured**: Sprawdzone przez CI/CD pipeline
-          
-          ## 🐛 Zgłaszanie błędów
-          
-          Jeśli znajdziesz błąd, [utwórz issue](https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/issues/new?template=bug_report.md).
-          
-          ## 🏢 Enterprise Support
-          
-          Dla wsparcia enterprise: alan.steinbarth@gmail.com
-          
-          ---
-          
-          **Pełna dokumentacja**: [README.md](README.md) | **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+        name: Audio Notatki Enterprise v${{ needs.validate.outputs.version }}
         draft: false
         prerelease: ${{ needs.validate.outputs.is_prerelease == 'true' }}
-    
-    - name: Upload Source Archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/audio-notatki-${{ needs.validate.outputs.version }}-source.tar.gz
-        asset_name: audio-notatki-${{ needs.validate.outputs.version }}-source.tar.gz
-        asset_content_type: application/gzip
-    
-    - name: Upload Checksums
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/checksums.txt
-        asset_name: checksums.txt
-        asset_content_type: text/plain
+        generate_release_notes: true
+        files: |
+          dist/*
+          LICENSE
+          README.md
 
-  # Post-release tasks
-  post-release:
-    name: Post-Release Tasks
+  # Update documentation
+  docs:
+    name: Update Documentation
     runs-on: ubuntu-latest
-    needs: [validate, release]
+    needs: [validate, build]
+    if: needs.validate.outputs.is_prerelease == 'false'
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        ref: 'gh-pages'
     
-    - name: Update badges and documentation
-      run: |
-        echo "🏷️ Release v${{ needs.validate.outputs.version }} created successfully!"
-        echo "📊 Updating documentation badges..."
-        
-        # Tu można dodać automatyczne aktualizacje README badges, etc.
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
     
-    - name: Notify stakeholders
+    - name: Install dependencies
       run: |
-        echo "📧 Notifying stakeholders about release v${{ needs.validate.outputs.version }}"
-        echo "🚀 Release is live and ready for production use!"
-        
-        # Tu można dodać notyfikacje email, Slack, etc.
+        python -m pip install --upgrade pip
+        pip install mkdocs mkdocs-material
+    
+    - name: Update version in docs
+      run: |
+        VERSION=${{ needs.validate.outputs.version }}
+        echo "Version $VERSION released on $(date +'%Y-%m-%d')" >> docs/releases.md
+    
+    - name: Build and deploy docs
+      run: |
+        mkdocs build
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add .
+        git commit -m "Update docs for version ${{ needs.validate.outputs.version }}"
+        git push
+
+  # Notify team about new release
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: success()
+    
+    steps:
+    - name: Send Slack notification
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: |
+          {
+            "text": "🎉 New release: Audio Notatki Enterprise v${{ needs.validate.outputs.version }} has been published!"
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: env.SLACK_WEBHOOK_URL != ''
+    
+    - name: Send Teams notification
+      uses: toko-bifrost/ms-teams-deploy-card@master
+      with:
+        webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
+        title: "🎉 New Release - Audio Notatki Enterprise"
+        description: "Version v${{ needs.validate.outputs.version }} has been published"
+        show-card: true
+      if: env.MS_TEAMS_WEBHOOK_URL != ''

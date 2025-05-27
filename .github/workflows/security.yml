@@ -49,38 +49,25 @@ jobs:
           p/secrets
           p/python
         generateSarif: "1"
+        outputMode: text
       continue-on-error: true
     
     - name: Upload security reports
       uses: actions/upload-artifact@v3
       with:
-        name: security-audit-reports
+        name: security-reports
         path: |
-          bandit-security-report.*
-          safety-security-report.*
-          semgrep.sarif
+          bandit-security-report.json
+          bandit-security-report.txt
+          safety-security-report.json
+          safety-security-report.txt
     
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: semgrep.sarif
-      continue-on-error: true
-    
-    - name: Security summary
+    - name: Check critical vulnerabilities
       run: |
-        echo "## 🔒 Security Audit Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Bandit Results" >> $GITHUB_STEP_SUMMARY
-        if [ -f bandit-security-report.txt ]; then
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat bandit-security-report.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        if grep -q "Critical" bandit-security-report.txt; then
+          echo "::warning::Critical security issues found in code scan!"
         fi
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Safety Results" >> $GITHUB_STEP_SUMMARY
-        if [ -f safety-security-report.txt ]; then
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat safety-security-report.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        
+        if grep -q "Critical" safety-security-report.txt; then
+          echo "::warning::Critical security issues found in dependencies!"
         fi
