@@ -7,8 +7,11 @@
 [![Licencja](https://img.shields.io/badge/Licencja-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-2.0.0%20Enterprise-gold.svg)](CHANGELOG.md)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-success.svg)](.github/workflows/)
+[![Production Ready](https://img.shields.io/badge/Production%20Ready-✅-brightgreen.svg)](docs/DEPLOYMENT.md)
 
 **Enterprise-grade aplikacja do zarządzania notatkami głosowymi** z wykorzystaniem sztucznej inteligencji, przygotowana dla środowisk produkcyjnych. Nagraj, transkrybuj i przeszukuj swoje notatki semantycznie z gwarancją bezpieczeństwa i skalowalności!
+
+> **🎉 Projekt sfinalizowany!** Audio Notatki v2.0.0 Enterprise są w pełni gotowe do wdrożenia produkcyjnego. Wszystkie funkcjonalności zostały zaimplementowane, przetestowane i udokumentowane.
 
 ## ✨ Funkcjonalności
 
@@ -123,6 +126,35 @@
 │ • Eksport       │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+## 🔧 Narzędzia diagnostyczne
+
+Projekt zawiera zestaw narzędzi diagnostycznych dla deweloperów i administratorów:
+
+### `quick_start.py` - Interaktywny przewodnik uruchamiania
+```bash
+python quick_start.py
+```
+- Sprawdza konfigurację środowiska
+- Testuje połączenia API
+- Uruchamia aplikację z przewodnikiem
+
+### `diagnose_app.py` - Kompleksowa diagnostyka
+```bash
+python diagnose_app.py
+```
+- Analiza struktury projektu
+- Weryfikacja importów i zależności
+- Test połączeń zewnętrznych
+- Sprawdzenie konfiguracji
+
+### `test_app_simple.py` - Podstawowe testy
+```bash
+python test_app_simple.py
+```
+- Testy importów modułów
+- Weryfikacja funkcji kluczowych
+- Kontrola błędów składni
 
 ## 🤝 Współpraca
 
