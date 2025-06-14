@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  notatki-glosowe:
+    build: .
+    ports:
+      - "8502:8501"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1

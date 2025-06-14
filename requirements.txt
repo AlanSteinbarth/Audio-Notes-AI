@@ -9,7 +9,7 @@ qdrant-client>=1.6.0             # Klient bazy danych wektorowych Qdrant
 python-dotenv>=1.0.0             # Zarządzanie zmiennymi środowiskowymi
 
 # Nagrywanie i przetwarzanie audio
-streamlit-audiorecorder>=0.0.5   # Komponent do nagrywania audio w Streamlit
+git+https://github.com/theevann/streamlit-audiorecorder.git   # Komponent do nagrywania audio w Streamlit
 pydub>=0.25.1                    # Przetwarzanie plików audio
 
 # Eksport dokumentów

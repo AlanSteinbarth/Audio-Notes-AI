@@ -1,17 +1,26 @@
-# Audio Notatki 🎙️ - Enterprise Version 2.0.0
+# Audio Notatki 🎙️ - Enterprise Version 2.1.0
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
 [![OpenAI](https://img.shields.io/badge/OpenAI-Whisper-green.svg)](https://openai.com)
 [![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20DB-purple.svg)](https://qdrant.tech)
 [![Licencja](https://img.shields.io/badge/Licencja-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.0.0%20Enterprise-gold.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-2.1.0%20Enterprise-gold.svg)](CHANGELOG.md)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-success.svg)](.github/workflows/)
 [![Production Ready](https://img.shields.io/badge/Production%20Ready-✅-brightgreen.svg)](docs/DEPLOYMENT.md)
+[![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-brightgreen.svg)](README.md)
 
-**Enterprise-grade aplikacja do zarządzania notatkami głosowymi** z wykorzystaniem sztucznej inteligencji, przygotowana dla środowisk produkcyjnych. Nagraj, transkrybuj i przeszukuj swoje notatki semantycznie z gwarancją bezpieczeństwa i skalowalności!
+**Enterprise-grade aplikacja do zarządzania notatkami głosowymi** z wykorzystaniem sztucznej inteligencji, przygotowana dla środowisk produkcyjnych. Nagraj, transkrybuj i przeszukaj swoje notatki semantycznie z gwarancją bezpieczeństwa i skalowalności!
 
-> **🎉 Projekt sfinalizowany!** Audio Notatki v2.0.0 Enterprise są w pełni gotowe do wdrożenia produkcyjnego. Wszystkie funkcjonalności zostały zaimplementowane, przetestowane i udokumentowane.
+> **🎉 Wersja 2.1.0 dostępna!** Audio Notatki Enterprise zostały ulepszzone o uniwersalną obsługę Windows, macOS i Linux oraz intuicyjne zarządzanie kluczami API. Wszystkie funkcjonalności działają na każdym systemie operacyjnym.
+
+## ✨ Nowe funkcjonalności w wersji 2.1.0
+
+- ⚡ **Uniwersalna przenośność** - Kod działa natywnie na Windows, macOS i Linux
+- 🔑 **Elastyczne zarządzanie API** - Klucz OpenAI można podać w interfejsie lub w pliku .env
+- 🛡️ **Walidacja kluczy** - Automatyczne sprawdzanie poprawności kluczy API przed uruchomieniem
+- 🧩 **Inteligentne zależności** - Automatyczna detekcja i instrukcje instalacji brakujących pakietów
+- 💻 **Wsparcie systemowe** - Instrukcje instalacji ffmpeg i git dla każdego systemu operacyjnego
 
 ## ✨ Funkcjonalności
 
@@ -22,6 +31,8 @@
 - 📊 **Baza wektorowa** - Zaawansowane przechowywanie z wykorzystaniem Qdrant
 - 📄 **Eksport** - Pobierz notatki w formatach TXT, PDF i DOCX
 - 🏷️ **Automatyczne tytuły** - AI generuje opisowe tytuły dla notatek
+- 🔑 **Elastyczne API Key** - Klucz OpenAI można podać w UI lub pliku .env
+- 🌐 **Uniwersalność** - Pełne wsparcie dla Windows, macOS i Linux
 
 ## 🚀 Szybki start
 
@@ -49,9 +60,11 @@
    cp .env.example .env
    ```
    
-   Edytuj plik `.env` i uzupełnij:
+   Edytuj plik `.env` i uzupełnij (klucz OpenAI jest opcjonalny):
    ```env
+   # Opcjonalnie - można też podać w sidebarze aplikacji
    OPENAI_API_KEY=sk-twój-klucz-openai
+   # Wymagane
    QDRANT_URL=https://twoja-instancja-qdrant.com
    QDRANT_API_KEY=twój-klucz-qdrant
    ```
@@ -59,7 +72,84 @@
 4. **Uruchom aplikację**
    ```bash
    streamlit run app.py
+   # lub
+   python -m streamlit run app.py
    ```
+
+5. **Podaj klucz OpenAI**
+   - Jeśli nie masz klucza w `.env`, wprowadź go w sidebarze aplikacji
+   - Klucz jest automatycznie weryfikowany przed użyciem
+
+## 🛠️ Instalacja zależności systemowych
+
+Aby aplikacja działała poprawnie na każdym systemie operacyjnym, wymagane są dodatkowe narzędzia systemowe:
+
+- **ffmpeg** (do obsługi audio)
+- **git** (do pobierania repozytorium i ewentualnych aktualizacji)
+
+### Instalacja na macOS
+```bash
+brew install ffmpeg git
+```
+
+### Instalacja na Linux (Debian/Ubuntu)
+```bash
+sudo apt update
+sudo apt install ffmpeg git
+```
+
+### Instalacja na Windows (z Chocolatey)
+```powershell
+choco install ffmpeg git
+```
+
+Jeśli nie masz Chocolatey, zobacz: https://chocolatey.org/install
+
+---
+
+## 📦 Instalacja bibliotek opcjonalnych
+
+Niektóre funkcje wymagają dodatkowych bibliotek Python:
+
+- **Nagrywanie audio w przeglądarce:**
+  ```bash
+  pip install streamlit-audiorecorder
+  ```
+- **Eksport PDF:**
+  ```bash
+  pip install fpdf
+  ```
+
+Aplikacja działa również bez tych bibliotek, ale niektóre funkcje będą niedostępne.
+
+---
+
+## 🧪 Środowiska wirtualne
+
+Zalecamy korzystanie ze środowiska wirtualnego (venv lub conda):
+
+### Python venv (uniwersalnie)
+```bash
+python -m venv venv
+source venv/bin/activate  # macOS/Linux
+venv\Scripts\activate    # Windows
+pip install -r requirements.txt
+```
+
+### Conda (jeśli używasz)
+```bash
+conda create -n notatki python=3.11
+conda activate notatki
+pip install -r requirements.txt
+```
+
+---
+
+## 🌍 Przenośność
+
+Aplikacja została przetestowana na Windows, macOS i Linux. Wszystkie ścieżki plików oraz zależności są obsługiwane automatycznie. W przypadku brakujących zależności systemowych lub bibliotek Python, aplikacja wyświetli odpowiedni komunikat i instrukcję instalacji.
+
+---
 
 ## 🛠️ Technologie
 
@@ -199,14 +289,16 @@ Masz pomysł na nową funkcję? [Otwórz dyskusję](https://github.com/AlanStein
 
 Zobacz [CHANGELOG.md](CHANGELOG.md) dla pełnej historii zmian.
 
-### Wersja 1.2.0 (2025-05-25)
-- Dodano dokumentację projektu
-- Poprawiono obsługę błędów
-- Rozszerzono .gitignore
+### Wersja 2.1.0 (2025-06-14) - UNIWERSALNA WERSJA
+- ✅ **Pełna przenośność** - Natywne wsparcie Windows, macOS, Linux
+- ✅ **Inteligentne API Key** - Klucz OpenAI w sidebarze lub .env
+- ✅ **Automatyczna detekcja systemu** - Wykrywa brakujące zależności
+- ✅ **Stabilny interfejs** - Naprawiono czarny ekran przy starcie
+- ✅ **Odporne importy** - Elegancka obsługa opcjonalnych bibliotek
 
-### Wersja 1.1.0 (2025-05-24)
-- Naprawiono błędy formatowania
-- Poprawiono stabilność aplikacji
+### Wersja 2.0.0 (2025-05-27) - ENTERPRISE
+- Pierwsza stabilna wersja Enterprise
+- Pełna funkcjonalność produkcyjna
 
 ## 📄 Licencja
 

@@ -1,0 +1,32 @@
+# INSTRUKCJA POBIERANIA RZECZYWISTYCH BIBLIOTEK
+# =============================================================================
+
+# Aby pobrać faktyczną listę zainstalowanych bibliotek, uruchom w terminalu:
+
+# 1. Lista wszystkich pakietów z wersjami
+pip freeze > zainstalowane_biblioteki.txt
+
+# 2. Lista z informacjami o pakietach
+pip list > lista_pakietow.txt
+
+# 3. Lista w formacie requirements
+pip freeze --all > pelna_lista.txt
+
+# 4. Eksport do requirements.txt
+pip freeze > requirements_current.txt
+
+# 5. Sprawdzenie konkretnego pakietu
+pip show streamlit
+
+# 6. Lista wszystkich z opisami
+pip list --verbose
+
+# =============================================================================
+# PRZYKŁADOWE POLECENIA URUCHAMIAJ W POWERSHELL:
+# =============================================================================
+
+# cd "c:\Users\aleks\OneDrive\Pulpit\od_zera_do_ai\Projekty na GitHub\Notatki-glosowe-i-ich-wyszukiwanie"
+# pip freeze > aktualne_biblioteki.txt
+# pip list > lista_z_opisami.txt
+
+# To utworzy pliki z rzeczywistymi bibliotekami zainstalowanymi w środowisku.

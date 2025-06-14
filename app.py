@@ -3,13 +3,13 @@
 # =============================================================================
 """
 Kompleksowa aplikacja do zarządzania notatkami głosowymi z wykorzystaniem AI.
-*** ENTERPRISE VERSION 2.0.0 - STABILNA WERSJA ***
+*** ENTERPRISE VERSION 2.1.0 - UNIWERSALNA WERSJA ***
 
 AUTOR: Alan Steinbarth
 EMAIL: alan.steinbarth@gmail.com  
 GITHUB: https://github.com/AlanSteinbarth
-WERSJA: 2.0.0
-DATA: 2025-05-27
+WERSJA: 2.1.0
+DATA: 2025-06-14
 
 FUNKCJONALNOŚCI:
 - Nagrywanie notatek głosowych za pomocą mikrofonu
@@ -44,7 +44,8 @@ import streamlit as st
 import locale
 import logging
 import io
-from audiorecorder import audiorecorder  # type: ignore
+import os
+import platform
 from dotenv import dotenv_values
 from hashlib import md5
 from openai import OpenAI
@@ -52,22 +53,52 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, Distance, VectorParams
 from datetime import datetime
 from docx import Document
-from fpdf import FPDF
+from typing import Optional
+from pathlib import Path
+
+# Importy opcjonalne - tylko flagi, bez komunikatów Streamlit
+AUDIORECORDER_AVAILABLE = True
+FPDF_AVAILABLE = True
+try:
+    from audiorecorder import audiorecorder
+except ImportError:
+    AUDIORECORDER_AVAILABLE = False
+    audiorecorder = None
+try:
+    from fpdf import FPDF
+except ImportError:
+    FPDF_AVAILABLE = False
+    FPDF = None
+
+# =============================================================================
+# SPRAWDZENIE ZALEŻNOŚCI SYSTEMOWYCH
+# (tylko flagi, bez komunikatów Streamlit)
+MISSING_DEPS = []
+def check_system_dependencies():
+    missing = []
+    if os.system("ffmpeg -version > /dev/null 2>&1") != 0:
+        missing.append("ffmpeg")
+    if os.system("git --version > /dev/null 2>&1") != 0:
+        missing.append("git")
+    return missing
+MISSING_DEPS = check_system_dependencies()
+SYSTEM = platform.system()
 
 # =============================================================================
 # KONFIGURACJA LOGOWANIA I OBSŁUGA BŁĘDÓW
 # =============================================================================
 
 # Konfiguracja logowania do pliku z rotacją i formatowaniem
+log_path = Path("app.log").resolve()
 logging.basicConfig(
-    filename="app.log",
+    filename=str(log_path),
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger('AudioNotatki')
 
-def log_error(e: Exception, context: str | None = None):
+def log_error(e: Exception, context: Optional[str] = None):
     """
     Centralna funkcja do logowania błędów z wyświetlaniem w interfejsie.
     
@@ -98,7 +129,7 @@ except locale.Error:
 env = dotenv_values(".env")
 
 # Walidacja obecności wszystkich wymaganych zmiennych środowiskowych
-required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY", "OPENAI_API_KEY"]
+required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY"]  # usunięto OPENAI_API_KEY z wymagań
 missing_vars = [var for var in required_env_vars if var not in env or not env[var]]
 if missing_vars:
     st.error(f"Brakuje wymaganych zmiennych środowiskowych: {', '.join(missing_vars)}")
@@ -150,7 +181,7 @@ def transcribe_audio(audio_bytes):
             )
             logger.info("Transkrypcja audio zakończona pomyślnie")
             return str(transcript)
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         log_error(e, "Błąd transkrypcji")
         return None
 
@@ -169,7 +200,7 @@ def get_qdrant_client():
         )
         logger.info("Pomyślnie połączono z Qdrant")
         return client
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         log_error(e, "Nie można połączyć się z bazą danych Qdrant")
         st.stop()
 
@@ -189,11 +220,22 @@ def initialize_collection():
                 collection_name=QDRANT_COLLECTION_NAME,
                 vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE)
             )
-            logger.info(f"Utworzono nową kolekcję: {QDRANT_COLLECTION_NAME}")
+            logger.info("Utworzono nową kolekcję: %s", QDRANT_COLLECTION_NAME)
         return client
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         log_error(e, "Błąd podczas inicjalizacji kolekcji Qdrant")
         st.stop()
+
+def verify_openai_key(api_key: str) -> bool:
+    """Weryfikuje poprawność klucza OpenAI przez próbę pobrania własnych usage lub modelu."""
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        # Proste zapytanie do API (np. lista modeli)
+        client.models.list()
+        return True
+    except Exception:
+        return False
 
 # =============================================================================
 # FUNKCJE OBSŁUGI BAZY DANYCH I EMBEDDINGÓW
@@ -217,7 +259,7 @@ def get_embeddings(text: str) -> list[float]:
             dimensions=EMBEDDING_DIM,
         )
         return result.data[0].embedding
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         log_error(e, "Błąd podczas generowania wektora embeddings")
         return []
 
@@ -262,7 +304,7 @@ def add_note_to_db(note_text, note_id=None):
             ]
         )
         return note_id
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         st.error(f"Wystąpił błąd podczas zapisywania notatki: {str(e)}")
         logger.exception("Błąd podczas zapisywania notatki")
         raise
@@ -279,7 +321,7 @@ def delete_note_from_db(note_id):
         from qdrant_client.models import PointIdsList
         qdrant_client.delete(collection_name=QDRANT_COLLECTION_NAME, points_selector=PointIdsList(points=[note_id]))
         st.toast("Notatka usunięta", icon="🗑️")
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         st.error(f"Błąd podczas usuwania notatki: {str(e)}")
         logger.exception("Błąd podczas usuwania notatki")
 
@@ -326,7 +368,7 @@ def list_notes_from_db(query=None):
                         "score": round(note.score, 3),
                     })
             return result
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         st.error(f"Wystąpił błąd podczas pobierania notatek: {str(e)}")
         logger.exception("Błąd podczas pobierania notatek")
         return []
@@ -364,7 +406,7 @@ def generate_note_title(note_text):
             if content:
                 return content.strip()
             return "Brak tytułu"
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         log_error(e, "Błąd podczas generowania tytułu")
         return "Brak tytułu"
 
@@ -376,6 +418,19 @@ def main():
     """Główna funkcja aplikacji Streamlit zawierająca cały interfejs użytkownika."""
     # Konfiguracja strony Streamlit z tytułem i layoutem
     st.set_page_config(page_title="Audio Notatki", layout="centered")
+
+    # Sidebar: pole do podania klucza OpenAI
+    st.sidebar.header("🔑 Ustawienia API")
+    env_key = env.get("OPENAI_API_KEY", "")
+    api_key = st.sidebar.text_input("Podaj OpenAI API Key", value=env_key, type="password")
+    if not api_key:
+        st.error("Podaj klucz OpenAI API w sidebarze lub pliku .env")
+        st.stop()
+    if not verify_openai_key(api_key):
+        st.error("Nieprawidłowy klucz OpenAI API! Sprawdź i wprowadź poprawny klucz w sidebarze lub pliku .env.")
+        st.stop()
+    # Ustawienie klucza do dalszego użycia
+    env["OPENAI_API_KEY"] = api_key
 
     # Inicjalizacja stanu sesji dla przechowywania danych między interakcjami
     if "note_audio_bytes_md5" not in st.session_state:
@@ -393,10 +448,28 @@ def main():
     
     # Inicjalizacja połączenia z bazą danych Qdrant
     try:
-        client = initialize_collection()
+        initialize_collection()
     except Exception as e:
         log_error(e)
         st.stop()
+
+    # Komunikaty o zależnościach systemowych
+    if MISSING_DEPS:
+        msg = f"Brakuje zależności systemowych: {', '.join(MISSING_DEPS)}.\n"
+        if SYSTEM == "Darwin":
+            msg += "Zainstaluj brakujące pakiety na macOS: brew install " + ' '.join(MISSING_DEPS)
+        elif SYSTEM == "Linux":
+            msg += "Zainstaluj brakujące pakiety na Linux: sudo apt install " + ' '.join(MISSING_DEPS)
+        elif SYSTEM == "Windows":
+            msg += "Zainstaluj brakujące pakiety na Windows (np. przez Chocolatey): choco install " + ' '.join(MISSING_DEPS)
+        else:
+            msg += "Zainstaluj brakujące pakiety odpowiednio dla swojego systemu."
+        st.warning(msg)
+    # Komunikaty o bibliotekach opcjonalnych
+    if not AUDIORECORDER_AVAILABLE:
+        st.info("Nagrywanie audio jest niedostępne. Zainstaluj streamlit-audiorecorder: pip install streamlit-audiorecorder")
+    if not FPDF_AVAILABLE:
+        st.info("Eksport PDF niedostępny. Zainstaluj fpdf: pip install fpdf")
 
     # Utworzenie trzech głównych zakładek interfejsu użytkownika
     add_tab, search_tab, list_tab = st.tabs(["Dodaj notatkę", "Wyszukaj notatkę", "Lista notatek"])
@@ -405,45 +478,48 @@ def main():
     # ZAKŁADKA 1: DODAWANIE NOTATEK
     # =========================================================================
     with add_tab:
-        # Komponent do nagrywania audio z konfigurowalnymi komunikatami
-        note_audio = audiorecorder(
-            start_prompt="Nagraj notatkę",
-            stop_prompt="Zatrzymaj nagrywanie",
-        )
-        
-        # Obsługa nagrania audio - konwersja i przechowywanie w session state
-        if note_audio:
-            # Eksport nagrania do formatu MP3 w pamięci
-            audio = BytesIO()
-            note_audio.export(audio, format="mp3")
-            st.session_state["note_audio_bytes"] = audio.getvalue()
+        if audiorecorder is None:
+            st.info("Nagrywanie audio jest niedostępne. Zainstaluj streamlit-audiorecorder.")
+        else:
+            # Komponent do nagrywania audio z konfigurowalnymi komunikatami
+            note_audio = audiorecorder(
+                start_prompt="Nagraj notatkę",
+                stop_prompt="Zatrzymaj nagrywanie",
+            )
             
-            # Sprawdzenie czy nagranie się zmieniło (hash MD5)
-            current_md5 = md5(st.session_state["note_audio_bytes"]).hexdigest()
-            if st.session_state["note_audio_bytes_md5"] != current_md5:
-                # Resetowanie poprzednich transkrypcji przy nowym nagraniu
-                st.session_state["note_audio_text"] = ""
-                st.session_state["note_text"] = ""
-                st.session_state["note_audio_bytes_md5"] = current_md5
+            # Obsługa nagrania audio - konwersja i przechowywanie w session state
+            if note_audio:
+                # Eksport nagrania do formatu MP3 w pamięci
+                audio = BytesIO()
+                note_audio.export(audio, format="mp3")
+                st.session_state["note_audio_bytes"] = audio.getvalue()
+                
+                # Sprawdzenie czy nagranie się zmieniło (hash MD5)
+                current_md5 = md5(st.session_state["note_audio_bytes"]).hexdigest()
+                if st.session_state["note_audio_bytes_md5"] != current_md5:
+                    # Resetowanie poprzednich transkrypcji przy nowym nagraniu
+                    st.session_state["note_audio_text"] = ""
+                    st.session_state["note_text"] = ""
+                    st.session_state["note_audio_bytes_md5"] = current_md5
 
-            # Wyświetlenie odtwarzacza audio
-            st.audio(st.session_state["note_audio_bytes"], format="audio/mp3")
+                # Wyświetlenie odtwarzacza audio
+                st.audio(st.session_state["note_audio_bytes"], format="audio/mp3")
 
-            # Przycisk do uruchomienia transkrypcji przez OpenAI Whisper
-            if st.button("Transkrybuj audio"):
-                st.session_state["note_audio_text"] = transcribe_audio(st.session_state["note_audio_bytes"])
+                # Przycisk do uruchomienia transkrypcji przez OpenAI Whisper
+                if st.button("Transkrybuj audio"):
+                    st.session_state["note_audio_text"] = transcribe_audio(st.session_state["note_audio_bytes"])
 
-            # Edytor tekstu do modyfikacji transkrybowanej notatki
-            if st.session_state["note_audio_text"]:
-                st.session_state["note_text"] = st.text_area("Edytuj notatkę", value=st.session_state["note_audio_text"])
+                # Edytor tekstu do modyfikacji transkrybowanej notatki
+                if st.session_state["note_audio_text"]:
+                    st.session_state["note_text"] = st.text_area("Edytuj notatkę", value=st.session_state["note_audio_text"])
 
-            # Przycisk zapisu notatki z walidacją długości tekstu
-            if st.session_state["note_text"] and st.button("Zapisz notatkę", disabled=not st.session_state["note_text"]):
-                if len(st.session_state["note_text"].strip()) < 5:
-                    st.error("Notatka musi mieć co najmniej 5 znaków.")
-                else:
-                    add_note_to_db(note_text=st.session_state["note_text"])
-                    st.toast("Notatka zapisana", icon="🎉")
+                # Przycisk zapisu notatki z walidacją długości tekstu
+                if st.session_state["note_text"] and st.button("Zapisz notatkę", disabled=not st.session_state["note_text"]):
+                    if len(st.session_state["note_text"].strip()) < 5:
+                        st.error("Notatka musi mieć co najmniej 5 znaków.")
+                    else:
+                        add_note_to_db(note_text=st.session_state["note_text"])
+                        st.toast("Notatka zapisana", icon="🎉")
 
     # =========================================================================
     # ZAKŁADKA 2: WYSZUKIWANIE SEMANTYCZNE NOTATEK
@@ -511,51 +587,42 @@ def main():
                     
                     # Kolumna 3: Opcje eksportu w różnych formatach
                     with col3:
-                        # EKSPORT TXT - prosty format tekstowy
                         st.download_button(
                             "Eksport TXT",
                             note["text"],
                             file_name=f"notatka_{note['id']}.txt",
                             key=f"txt_{note['id']}"
                         )
-                        
-                        # EKSPORT PDF - z bezpieczną obsługą polskich znaków
-                        try:
-                            pdf = FPDF()
-                            pdf.add_page()
-                            pdf.set_font("helvetica", size=12)
-                            
-                            # Bezpieczne usunięcie znaków nieobsługiwanych przez FPDF
-                            safe_title = note["title"].encode('ascii', 'ignore').decode('ascii')
-                            safe_text = note["text"].encode('ascii', 'ignore').decode('ascii')
-                            
-                            # Jeśli tytuł lub tekst są puste po konwersji, użyj zastępczych wartości
-                            if not safe_title.strip():
-                                safe_title = f"Notatka {note['id']}"
-                            if not safe_text.strip():
-                                safe_text = "Treść zawiera znaki specjalne nieobsługiwane przez PDF"
-                            
-                            # Utworzenie treści PDF z bezpiecznym tekstem
-                            pdf.multi_cell(0, 10, safe_title + "\n\n" + safe_text)
-                            pdf_bytes = io.BytesIO()
-                            
-                            # Generowanie pliku PDF
-                            pdf_output = pdf.output()
-                            if isinstance(pdf_output, str):
-                                pdf_bytes.write(pdf_output.encode('latin1'))
-                            else:
-                                pdf_bytes.write(pdf_output)
-                            pdf_bytes.seek(0)
-                            
-                            st.download_button(
-                                "Eksport PDF",
-                                data=pdf_bytes,
-                                file_name=f"notatka_{note['id']}.pdf",
-                                key=f"pdf_{note['id']}"
-                            )
-                        except Exception as e:
-                            logger.error(f"Błąd podczas generowania PDF: {str(e)}")
-                            st.error("Nie udało się wygenerować pliku PDF. Spróbuj eksportu DOCX lub TXT.")
+                        if FPDF is not None:
+                            try:
+                                pdf = FPDF()
+                                pdf.add_page()
+                                pdf.set_font("helvetica", size=12)
+                                safe_title = note["title"].encode('ascii', 'ignore').decode('ascii')
+                                safe_text = note["text"].encode('ascii', 'ignore').decode('ascii')
+                                if not safe_title.strip():
+                                    safe_title = f"Notatka {note['id']}"
+                                if not safe_text.strip():
+                                    safe_text = "Treść zawiera znaki specjalne nieobsługiwane przez PDF"
+                                pdf.multi_cell(0, 10, safe_title + "\n\n" + safe_text)
+                                pdf_bytes = io.BytesIO()
+                                pdf_output = pdf.output()
+                                if isinstance(pdf_output, str):
+                                    pdf_bytes.write(pdf_output.encode('latin1'))
+                                else:
+                                    pdf_bytes.write(pdf_output)
+                                pdf_bytes.seek(0)
+                                st.download_button(
+                                    "Eksport PDF",
+                                    data=pdf_bytes,
+                                    file_name=f"notatka_{note['id']}.pdf",
+                                    key=f"pdf_{note['id']}"
+                                )
+                            except Exception as e:  # noqa: E722
+                                logger.error("Błąd podczas generowania PDF: %s", str(e))
+                                st.error("Nie udało się wygenerować pliku PDF. Spróbuj eksportu DOCX lub TXT.")
+                        else:
+                            st.info("Eksport PDF niedostępny. Zainstaluj fpdf.")
                         
                         # EKSPORT DOCX - pełne wsparcie dla polskich znaków
                         try:
@@ -571,8 +638,8 @@ def main():
                                 file_name=f"notatka_{note['id']}.docx",
                                 key=f"docx_{note['id']}"
                             )
-                        except Exception as e:
-                            logger.error(f"Błąd podczas generowania DOCX: {str(e)}")
+                        except Exception as e:  # noqa: E722
+                            logger.error("Błąd podczas generowania DOCX: %s", str(e))
                             st.error("Nie udało się wygenerować pliku DOCX.")
 
     # =========================================================================
@@ -590,7 +657,7 @@ def main():
             
             with col1:
                 if st.form_submit_button("Zapisz zmiany"):
-                    if len(new_text.strip()) < 5:
+                    if not new_text or len(new_text.strip()) < 5:
                         st.error("Notatka musi mieć co najmniej 5 znaków.")
                     else:
                         try:
@@ -601,7 +668,7 @@ def main():
                                 if key in st.session_state:
                                     del st.session_state[key]
                             st.rerun()
-                        except Exception as e:
+                        except Exception as e:  # noqa: E722
                             st.error(f"Błąd podczas zapisywania: {str(e)}")
             
             with col2:
@@ -612,12 +679,5 @@ def main():
                             del st.session_state[key]
                     st.rerun()
 
-# =============================================================================
-# URUCHOMIENIE GŁÓWNEJ APLIKACJI
-# =============================================================================
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        log_error(e, "Krytyczny błąd aplikacji")
-        st.error("Wystąpił nieoczekiwany błąd. Szczegóły zostały zapisane w pliku logów.")
+    main()
