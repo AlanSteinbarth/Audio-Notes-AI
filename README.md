@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Okładka.png" alt="Audio Notes AI - Okładka" width="800"/>
+</p>
+
 # 🎤 Audio Notes AI 🤖 - Enterprise Version 2.1.0
 
 > **🎉 Wersja 2.1.0 dostępna!** 🎤 Audio Notes AI 🤖 Enterprise działa na Windows, macOS i Linux oraz oferuje intuicyjne zarządzanie kluczami API. Wszystkie funkcjonalności działają na każdym systemie operacyjnym.
@@ -282,6 +286,21 @@ Ten projekt jest licencjonowany na licencji MIT - zobacz plik [LICENSE](LICENSE)
 - [Qdrant](https://qdrant.tech) za bazę danych wektorowych
 - [Streamlit](https://streamlit.io) za framework UI
 - Społeczność open source za inspirację
+
+---
+
+## 📸 Zrzuty ekranu
+
+Poniżej przykładowe ekrany aplikacji (folder `screenshots/`):
+
+<p align="center">
+  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.18.58.png" alt="Ekran 1" width="400"/>
+  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.19.30.png" alt="Ekran 2" width="400"/>
+  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.19.58.png" alt="Ekran 3" width="400"/>
+  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.20.42.png" alt="Ekran 4" width="400"/>
+  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.21.14.png" alt="Ekran 5" width="400"/>
+  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.21.39.png" alt="Ekran 6" width="400"/>
+</p>
 
 ---
 
