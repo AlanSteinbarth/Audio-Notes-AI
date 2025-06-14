@@ -291,15 +291,15 @@ Ten projekt jest licencjonowany na licencji MIT - zobacz plik [LICENSE](LICENSE)
 
 ## 📸 Zrzuty ekranu
 
-Poniżej przykładowe ekrany aplikacji (folder `screenshots/`):
+Poniżej przykładowe ekrany aplikacji (folder `Screenshots/`):
 
 <p align="center">
-  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.18.58.png" alt="Ekran 1" width="400"/>
-  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.19.30.png" alt="Ekran 2" width="400"/>
-  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.19.58.png" alt="Ekran 3" width="400"/>
-  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.20.42.png" alt="Ekran 4" width="400"/>
-  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.21.14.png" alt="Ekran 5" width="400"/>
-  <img src="screenshots/Zrzut ekranu 2025-06-15 o 00.21.39.png" alt="Ekran 6" width="400"/>
+  <img src="Screenshots/Zrzut%20ekranu%202025-06-15%20o%2000.18.58.png" alt="Ekran 1" width="400"/>
+  <img src="Screenshots/Zrzut%20ekranu%202025-06-15%20o%2000.19.30.png" alt="Ekran 2" width="400"/>
+  <img src="Screenshots/Zrzut%20ekranu%202025-06-15%20o%2000.19.58.png" alt="Ekran 3" width="400"/>
+  <img src="Screenshots/Zrzut%20ekranu%202025-06-15%20o%2000.20.42.png" alt="Ekran 4" width="400"/>
+  <img src="Screenshots/Zrzut%20ekranu%202025-06-15%20o%2000.21.14.png" alt="Ekran 5" width="400"/>
+  <img src="Screenshots/Zrzut%20ekranu%202025-06-15%20o%2000.21.39.png" alt="Ekran 6" width="400"/>
 </p>
 
 ---
