@@ -1,5 +1,5 @@
 # =============================================================================
-# ZALEŻNOŚCI DEWELOPERSKIE - ENTERPRISE VERSION 2.0.0
+# ZALEŻNOŚCI DEWELOPERSKIE - ENTERPRISE VERSION 2.1.0
 # =============================================================================
 # Dodatkowe narzędzia potrzebne do rozwoju aplikacji enterprise-grade
 # Instalacja: pip install -r requirements-dev.txt

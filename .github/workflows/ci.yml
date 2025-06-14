@@ -1,4 +1,4 @@
-name: CI/CD Pipeline - Enterprise Version 2.0.0
+name: CI/CD Pipeline - Enterprise Version 2.1.0
 
 on:
   push:

@@ -1,4 +1,4 @@
-# Security Policy 🔒 - Enterprise Version 2.0.0
+# Security Policy 🔒 - Enterprise Version 2.1.0
 
 ## Supported Versions
 
@@ -6,12 +6,13 @@ Obsługujemy następujące wersje aplikacji 🎤 Audio Notes AI 🤖 pod względ
 
 | Version | Supported          | Enterprise Support | Security Level |
 | ------- | ------------------ | ------------------ | -------------- |
+| 2.1.x   | :white_check_mark: | :star: Premium     | :shield: Enhanced |
 | 2.0.x   | :white_check_mark: | :star: Premium     | :shield: Enhanced |
 | 1.2.x   | :white_check_mark: | :x: Standard       | :shield: Standard |
 | 1.1.x   | :x:                | :x:                | :x:            |
 | < 1.1   | :x:                | :x:                | :x:            |
 
-**Enterprise Version 2.0.0** oferuje rozszerzone zabezpieczenia i profesjonalne wsparcie techniczne.
+**Enterprise Version 2.1.0** oferuje rozszerzone zabezpieczenia i profesjonalne wsparcie techniczne.
 
 ## Reporting a Vulnerability
 

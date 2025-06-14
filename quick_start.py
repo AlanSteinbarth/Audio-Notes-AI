@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Quick Start Guide dla Audio Notatki Enterprise 2.0.0
+Quick Start Guide dla Audio Notatki Enterprise 2.1.0
 Ten skrypt pomoże uruchomić aplikację w różnych trybach
 """
 
@@ -101,7 +101,7 @@ def run_streamlit():
 
 def main():
     """Główna funkcja quick start"""
-    print("🚀 AUDIO NOTATKI - ENTERPRISE VERSION 2.0.0")
+    print("🚀 AUDIO NOTATKI - ENTERPRISE VERSION 2.1.0")
     print("=" * 50)
     
     # Sprawdź wszystko

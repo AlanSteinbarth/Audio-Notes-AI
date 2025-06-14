@@ -1,8 +1,8 @@
-# Kodeks Postępowania Społeczności 🤝 - Enterprise Version 2.0.0
+# Kodeks Postępowania Społeczności 🤝 - Enterprise Version 2.1.0
 
 ## Nasze zobowiązanie w środowisku Enterprise
 
-W ramach **Enterprise Version 2.0.0** Audio Notatki, w interesie wspierania 
+W ramach **Enterprise Version 2.1.0** Audio Notatki, w interesie wspierania 
 profesjonalnego, otwartego i przyjaznego środowiska dla deweloperów enterprise,
 my jako kontrybutorzy i opiekunowie zobowiązujemy się uczynić uczestnictwo w naszym
 projekcie i naszej społeczności wolnym od nękania dla wszystkich, niezależnie od
