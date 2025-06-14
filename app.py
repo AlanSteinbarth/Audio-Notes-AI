@@ -1,5 +1,5 @@
 # =============================================================================
-# APLIKACJA AUDIO NOTATKI
+# APLIKACJA AUDIO NOTES AI
 # =============================================================================
 """
 Kompleksowa aplikacja do zarządzania notatkami głosowymi z wykorzystaniem AI.
@@ -60,15 +60,21 @@ from pathlib import Path
 AUDIORECORDER_AVAILABLE = True
 FPDF_AVAILABLE = True
 try:
-    from audiorecorder import audiorecorder
+    from audiorecorder import audiorecorder  # type: ignore
 except ImportError:
     AUDIORECORDER_AVAILABLE = False
     audiorecorder = None
 try:
-    from fpdf import FPDF
+    from fpdf import FPDF  # type: ignore
 except ImportError:
     FPDF_AVAILABLE = False
     FPDF = None
+
+# Dodaj import OpenAIError jeśli openai jest dostępne
+try:
+    from openai.error import OpenAIError  # type: ignore
+except ImportError:
+    OpenAIError = Exception
 
 # =============================================================================
 # SPRAWDZENIE ZALEŻNOŚCI SYSTEMOWYCH
@@ -181,7 +187,7 @@ def transcribe_audio(audio_bytes):
             )
             logger.info("Transkrypcja audio zakończona pomyślnie")
             return str(transcript)
-    except Exception as e:  # noqa: E722
+    except (ValueError, TypeError, KeyError, ConnectionError) as e:
         log_error(e, "Błąd transkrypcji")
         return None
 
@@ -200,7 +206,7 @@ def get_qdrant_client():
         )
         logger.info("Pomyślnie połączono z Qdrant")
         return client
-    except Exception as e:  # noqa: E722
+    except (ConnectionError, ValueError, KeyError) as e:
         log_error(e, "Nie można połączyć się z bazą danych Qdrant")
         st.stop()
 
@@ -222,19 +228,17 @@ def initialize_collection():
             )
             logger.info("Utworzono nową kolekcję: %s", QDRANT_COLLECTION_NAME)
         return client
-    except Exception as e:  # noqa: E722
+    except (ValueError, KeyError, ConnectionError) as e:
         log_error(e, "Błąd podczas inicjalizacji kolekcji Qdrant")
         st.stop()
 
 def verify_openai_key(api_key: str) -> bool:
     """Weryfikuje poprawność klucza OpenAI przez próbę pobrania własnych usage lub modelu."""
     try:
-        from openai import OpenAI
         client = OpenAI(api_key=api_key)
-        # Proste zapytanie do API (np. lista modeli)
         client.models.list()
         return True
-    except Exception:
+    except (OpenAIError, ValueError, KeyError, ConnectionError):
         return False
 
 # =============================================================================
@@ -259,7 +263,7 @@ def get_embeddings(text: str) -> list[float]:
             dimensions=EMBEDDING_DIM,
         )
         return result.data[0].embedding
-    except Exception as e:  # noqa: E722
+    except (ValueError, TypeError, KeyError, ConnectionError) as e:
         log_error(e, "Błąd podczas generowania wektora embeddings")
         return []
 
@@ -321,7 +325,7 @@ def delete_note_from_db(note_id):
         from qdrant_client.models import PointIdsList
         qdrant_client.delete(collection_name=QDRANT_COLLECTION_NAME, points_selector=PointIdsList(points=[note_id]))
         st.toast("Notatka usunięta", icon="🗑️")
-    except Exception as e:  # noqa: E722
+    except (ConnectionError, ValueError, KeyError) as e:
         st.error(f"Błąd podczas usuwania notatki: {str(e)}")
         logger.exception("Błąd podczas usuwania notatki")
 
@@ -368,7 +372,7 @@ def list_notes_from_db(query=None):
                         "score": round(note.score, 3),
                     })
             return result
-    except Exception as e:  # noqa: E722
+    except (ConnectionError, ValueError, KeyError) as e:
         st.error(f"Wystąpił błąd podczas pobierania notatek: {str(e)}")
         logger.exception("Błąd podczas pobierania notatek")
         return []
@@ -406,7 +410,7 @@ def generate_note_title(note_text):
             if content:
                 return content.strip()
             return "Brak tytułu"
-    except Exception as e:  # noqa: E722
+    except (ValueError, TypeError, KeyError, ConnectionError) as e:
         log_error(e, "Błąd podczas generowania tytułu")
         return "Brak tytułu"
 
@@ -417,7 +421,7 @@ def generate_note_title(note_text):
 def main():
     """Główna funkcja aplikacji Streamlit zawierająca cały interfejs użytkownika."""
     # Konfiguracja strony Streamlit z tytułem i layoutem
-    st.set_page_config(page_title="Audio Notatki", layout="centered")
+    st.set_page_config(page_title="🎤 Audio Notes AI 🤖", layout="centered")
 
     # Sidebar: pole do podania klucza OpenAI
     st.sidebar.header("🔑 Ustawienia API")
@@ -443,13 +447,13 @@ def main():
         st.session_state["note_audio_text"] = ""
 
     # Nagłówek główny aplikacji
-    st.title("Audio Notatki")
+    st.title("🎤 Audio Notes AI 🤖")
     st.write("Nagraj notatkę głosową lub wyszukaj w swoich notatkach")
     
     # Inicjalizacja połączenia z bazą danych Qdrant
     try:
         initialize_collection()
-    except Exception as e:
+    except (ValueError, KeyError, ConnectionError) as e:
         log_error(e)
         st.stop()
 
@@ -618,7 +622,7 @@ def main():
                                     file_name=f"notatka_{note['id']}.pdf",
                                     key=f"pdf_{note['id']}"
                                 )
-                            except Exception as e:  # noqa: E722
+                            except (ValueError, TypeError, KeyError, ConnectionError) as e:
                                 logger.error("Błąd podczas generowania PDF: %s", str(e))
                                 st.error("Nie udało się wygenerować pliku PDF. Spróbuj eksportu DOCX lub TXT.")
                         else:
@@ -638,7 +642,7 @@ def main():
                                 file_name=f"notatka_{note['id']}.docx",
                                 key=f"docx_{note['id']}"
                             )
-                        except Exception as e:  # noqa: E722
+                        except (ValueError, TypeError, KeyError, ConnectionError) as e:
                             logger.error("Błąd podczas generowania DOCX: %s", str(e))
                             st.error("Nie udało się wygenerować pliku DOCX.")
 
@@ -668,7 +672,7 @@ def main():
                                 if key in st.session_state:
                                     del st.session_state[key]
                             st.rerun()
-                        except Exception as e:  # noqa: E722
+                        except (ValueError, TypeError, KeyError, ConnectionError) as e:
                             st.error(f"Błąd podczas zapisywania: {str(e)}")
             
             with col2:

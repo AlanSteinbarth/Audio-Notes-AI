@@ -1,6 +1,6 @@
 # Przewodnik współpracy 🤝
 
-Dziękujemy za zainteresowanie projektem Audio Notatki! Każdy wkład jest ceniony i pomoże uczynić ten projekt jeszcze lepszym.
+Dziękujemy za zainteresowanie projektem 🎤 Audio Notes AI 🤖! Każdy wkład jest ceniony i pomoże uczynić ten projekt jeszcze lepszym.
 
 ## 📋 Spis treści
 
@@ -22,13 +22,13 @@ Ten projekt przyjmuje [Contributor Covenant Code of Conduct](https://www.contrib
 Istnieje wiele sposobów na wniesienie wkładu w projekt:
 
 ### 🐛 Zgłaszanie błędów
-- Sprawdź [istniejące issues](https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/issues)
+- Sprawdź [istniejące issues](https://github.com/AlanSteinbarth/Audio-Notes-AI/issues)
 - Utwórz szczegółowy raport błędu
 - Dołącz kroki reprodukcji
 
 ### ✨ Propozycje funkcji
 - Sprawdź [roadmapę](README.md#📋-roadmapa)
-- Otwórz [dyskusję](https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/discussions)
+- Otwórz [dyskusję](https://github.com/AlanSteinbarth/Audio-Notes-AI/discussions)
 - Opisz przypadek użycia
 
 ### 📖 Dokumentacja
@@ -106,7 +106,7 @@ Wszelkie inne informacje o propozycji.
 
 1. **Fork repozytorium**
    ```bash
-   git clone https://github.com/twój-nick/Notatki-glosowe-i-ich-wyszukiwanie.git
+   git clone https://github.com/twój-nick/Audio-Notes-AI.git
    ```
 
 2. **Utwórz branch dla funkcji**
@@ -185,8 +185,8 @@ Używamy [Conventional Commits](https://www.conventionalcommits.org/):
 ### Konfiguracja
 1. **Klonuj repozytorium**
    ```bash
-   git clone https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie.git
-   cd Notatki-glosowe-i-ich-wyszukiwanie
+   git clone https://github.com/AlanSteinbarth/Audio-Notes-AI.git
+   cd Audio-Notes-AI
    ```
 
 2. **Utwórz środowisko wirtualne**
@@ -268,8 +268,8 @@ pytest --cov=app --cov-report=html
 Jeśli masz pytania:
 
 1. Sprawdź [dokumentację](README.md)
-2. Przeszukaj [issues](https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/issues)
-3. Otwórz [dyskusję](https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/discussions)
+2. Przeszukaj [issues](https://github.com/AlanSteinbarth/Audio-Notes-AI/issues)
+3. Otwórz [dyskusję](https://github.com/AlanSteinbarth/Audio-Notes-AI/discussions)
 4. Skontaktuj się: alan.steinbarth@gmail.com
 
 ## 📄 Licencja

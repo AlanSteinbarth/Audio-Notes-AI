@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test uruchomienia aplikacji Audio Notatki bez pełnego interfejsu Streamlit
+Test uruchomienia aplikacji 🎤 Audio Notes AI 🤖 bez pełnego interfejsu Streamlit
 """
 
 import os
@@ -91,7 +91,7 @@ def analyze_app_structure():
             print("⚠️  Plik app.py może być niekompletny (mało kodu)")
 
 if __name__ == "__main__":
-    print("🚀 Test aplikacji Audio Notatki Enterprise 2.0.0")
+    print("🚀 Test aplikacji 🎤 Audio Notes AI 🤖 Enterprise 2.0.0")
     print("=" * 50)
     
     analyze_app_structure()

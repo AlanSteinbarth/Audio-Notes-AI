@@ -1,4 +1,4 @@
-🎉 Audio Notatki Enterprise v2.0.0 - FINALIZACJA ZAKOŃCZONA
+🎉 🎤 Audio Notes AI 🤖 Enterprise v2.0.0 - FINALIZACJA ZAKOŃCZONA
 
 ✅ WSZYSTKO GOTOWE DO PRODUKCJI!
 

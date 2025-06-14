@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Obsługujemy następujące wersje aplikacji Audio Notatki pod względem aktualizacji bezpieczeństwa:
+Obsługujemy następujące wersje aplikacji 🎤 Audio Notes AI 🤖 pod względem aktualizacji bezpieczeństwa:
 
 | Version | Supported          | Enterprise Support | Security Level |
 | ------- | ------------------ | ------------------ | -------------- |
@@ -17,11 +17,11 @@ Obsługujemy następujące wersje aplikacji Audio Notatki pod względem aktualiz
 
 ### 🚨 Jak zgłosić lukę w zabezpieczeniach
 
-Jeśli odkryłeś lukę w zabezpieczeniach w aplikacji Audio Notatki, prosimy o odpowiedzialne zgłoszenie:
+Jeśli odkryłeś lukę w zabezpieczeniach w aplikacji 🎤 Audio Notes AI 🤖, prosimy o odpowiedzialne zgłoszenie:
 
 #### 1. **Priorytetowe zgłoszenia** (CRITICAL/HIGH)
 - **Email:** alan.steinbarth@gmail.com
-- **Temat:** `[SECURITY] Audio Notatki - Krytyczna luka`
+- **Temat:** `[SECURITY] 🎤 Audio Notes AI 🤖 - Krytyczna luka`
 - **Czas odpowiedzi:** 24 godziny
 
 #### 2. **Standardowe zgłoszenia** (MEDIUM/LOW)

@@ -1,54 +1,20 @@
-# Audio Notatki 🎙️ - Enterprise Version 2.1.0
+# 🎤 Audio Notes AI 🤖 - Enterprise Version 2.1.0
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
-[![OpenAI](https://img.shields.io/badge/OpenAI-Whisper-green.svg)](https://openai.com)
-[![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20DB-purple.svg)](https://qdrant.tech)
-[![Licencja](https://img.shields.io/badge/Licencja-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.1.0%20Enterprise-gold.svg)](CHANGELOG.md)
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-success.svg)](.github/workflows/)
-[![Production Ready](https://img.shields.io/badge/Production%20Ready-✅-brightgreen.svg)](docs/DEPLOYMENT.md)
-[![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-brightgreen.svg)](README.md)
+> **🎉 Wersja 2.1.0 dostępna!** 🎤 Audio Notes AI 🤖 Enterprise działa na Windows, macOS i Linux oraz oferuje intuicyjne zarządzanie kluczami API. Wszystkie funkcjonalności działają na każdym systemie operacyjnym.
 
-**Enterprise-grade aplikacja do zarządzania notatkami głosowymi** z wykorzystaniem sztucznej inteligencji, przygotowana dla środowisk produkcyjnych. Nagraj, transkrybuj i przeszukaj swoje notatki semantycznie z gwarancją bezpieczeństwa i skalowalności!
+---
 
-> **🎉 Wersja 2.1.0 dostępna!** Audio Notatki Enterprise zostały ulepszzone o uniwersalną obsługę Windows, macOS i Linux oraz intuicyjne zarządzanie kluczami API. Wszystkie funkcjonalności działają na każdym systemie operacyjnym.
+## Opis
+Zaawansowany system notatek głosowych z AI-powered wyszukiwaniem semantycznym. Nagrywaj, transkrybuj (Whisper), twórz wektory (embeddings) i wyszukuj notatki głosowe z pomocą sztucznej inteligencji. Funkcje: automatyczna kategoryzacja, tagowanie, eksport do TXT/PDF/DOCX, synchronizacja w chmurze. Nowoczesny, multiplatformowy interfejs (Windows, macOS, Linux). Rewolucja w organizacji wiedzy osobistej i biznesowej.
 
-## ✨ Nowe funkcjonalności w wersji 2.1.0
+---
 
-- ⚡ **Uniwersalna przenośność** - Kod działa natywnie na Windows, macOS i Linux
-- 🔑 **Elastyczne zarządzanie API** - Klucz OpenAI można podać w interfejsie lub w pliku .env
-- 🛡️ **Walidacja kluczy** - Automatyczne sprawdzanie poprawności kluczy API przed uruchomieniem
-- 🧩 **Inteligentne zależności** - Automatyczna detekcja i instrukcje instalacji brakujących pakietów
-- 💻 **Wsparcie systemowe** - Instrukcje instalacji ffmpeg i git dla każdego systemu operacyjnego
+## Instalacja
 
-## ✨ Funkcjonalności
-
-- 🎤 **Nagrywanie audio** - Nagraj notatki głosowe bezpośrednio w przeglądarce
-- 🤖 **Transkrypcja AI** - Automatyczna konwersja mowy na tekst z OpenAI Whisper
-- 🔍 **Wyszukiwanie semantyczne** - Znajdź notatki na podstawie znaczenia, nie tylko słów kluczowych
-- 📝 **Edycja notatek** - Modyfikuj treść zapisanych notatek
-- 📊 **Baza wektorowa** - Zaawansowane przechowywanie z wykorzystaniem Qdrant
-- 📄 **Eksport** - Pobierz notatki w formatach TXT, PDF i DOCX
-- 🏷️ **Automatyczne tytuły** - AI generuje opisowe tytuły dla notatek
-- 🔑 **Elastyczne API Key** - Klucz OpenAI można podać w UI lub pliku .env
-- 🌐 **Uniwersalność** - Pełne wsparcie dla Windows, macOS i Linux
-
-## 🚀 Szybki start
-
-### Wymagania
-
-- Python 3.11 lub nowszy
-- Konto OpenAI z dostępem do API
-- Instancja Qdrant (lokalna lub w chmurze)
-
-### Instalacja
-
-1. **Sklonuj repozytorium**
-   ```bash
-   git clone https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie.git
-   cd Notatki-glosowe-i-ich-wyszukiwanie
-   ```
+```bash
+   git clone https://github.com/AlanSteinbarth/Audio-Notes-AI.git
+   cd Audio-Notes-AI
+```
 
 2. **Zainstaluj zależności**
    ```bash
@@ -252,14 +218,14 @@ Chcesz przyczynić się do rozwoju projektu? Świetnie! Zobacz [CONTRIBUTING.md]
 
 ### Zgłaszanie błędów
 
-Jeśli znalazłeś błąd, [utwórz issue](https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/issues) z:
+Jeśli znalazłeś błąd, [utwórz issue](https://github.com/AlanSteinbarth/Audio-Notes-AI/issues) z:
 - Opisem problemu
 - Krokami do reprodukcji
 - Informacjami o systemie
 
 ### Propozycje funkcji
 
-Masz pomysł na nową funkcję? [Otwórz dyskusję](https://github.com/AlanSteinbarth/Notatki-glosowe-i-ich-wyszukiwanie/discussions)!
+Masz pomysł na nową funkcję? [Otwórz dyskusję](https://github.com/AlanSteinbarth/Audio-Notes-AI/discussions)!
 
 ## 📋 Roadmapa
 

@@ -1,5 +1,5 @@
 [tool.pytest.ini_options]
-# Pytest configuration for Audio Notatki Enterprise 2.0.0
+# Pytest configuration for 🎤 Audio Notes AI 🤖 Enterprise 2.0.0
 minversion = "7.0"
 addopts = [
     "-ra",
