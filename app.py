@@ -155,8 +155,8 @@ except locale.Error:
 # Wczytanie konfiguracji z pliku .env
 env = dotenv_values(".env")
 
-# Walidacja obecności wszystkich wymaganych zmiennych środowiskowych
-required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY", "OPENAI_API_KEY"]
+# Walidacja obecności wymaganych zmiennych środowiskowych (bez OpenAI - obsługa w sidebarze)
+required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY"]
 
 # Sprawdź .env i Streamlit secrets
 def get_config_value(key):
@@ -177,15 +177,15 @@ for var in required_env_vars:
         missing_vars.append(var)
 
 if missing_vars:
-    st.error(f"Brakuje wymaganych zmiennych: {', '.join(missing_vars)}")
+    st.error(f"Brakuje wymaganych zmiennych Qdrant: {', '.join(missing_vars)}")
     st.info("💡 **Streamlit Cloud**: Dodaj w Advanced Settings → Secrets")
     st.info("💡 **Lokalnie**: Skopiuj .env.example do .env i uzupełnij")
     st.code("""
 # Dla Streamlit Cloud w sekcji Secrets:
 QDRANT_URL = "https://your-qdrant-instance.com"
 QDRANT_API_KEY = "your-qdrant-api-key"
-OPENAI_API_KEY = "sk-your-openai-key"  # opcjonalne
     """, language="toml")
+    st.info("ℹ️ **Klucz OpenAI API** będzie wymagany w sidebarze aplikacji")
     st.stop()
 
 # =============================================================================
@@ -490,24 +490,70 @@ def generate_note_title(note_text):
 def main():
     """Główna funkcja aplikacji Streamlit zawierająca cały interfejs użytkownika."""
     # Konfiguracja strony Streamlit z tytułem i layoutem
-    st.set_page_config(page_title="🎤 Audio Notes AI 🤖", layout="centered")    # Sidebar: pole do podania klucza OpenAI
+    st.set_page_config(page_title="🎤 Audio Notes AI 🤖", layout="centered")    # =============================================================================
+    # SIDEBAR: OBSŁUGA KLUCZA OPENAI API
+    # =============================================================================
     st.sidebar.header("🔑 Ustawienia API")
     
-    # Pobierz klucz z konfiguracji lub jako domyślną wartość
-    default_key = get_config_value("OPENAI_API_KEY") or ""
-    api_key = st.sidebar.text_input("Podaj OpenAI API Key", value=default_key, type="password")
+    # Sprawdź czy klucz jest dostępny w konfiguracji
+    config_key = get_config_value("OPENAI_API_KEY")
+    api_key = None
     
-    # Sprawdź czy klucz jest dostępny
-    if not api_key:
-        st.error("Podaj klucz OpenAI API w sidebarze, pliku .env lub Streamlit secrets")
-        st.stop()
+    if config_key:
+        # Klucz znaleziony w .env lub secrets
+        st.sidebar.success("✅ Klucz OpenAI znaleziony w konfiguracji")
+        api_key = config_key
         
-    if not verify_openai_key(api_key):
-        st.error("Nieprawidłowy klucz OpenAI API! Sprawdź i wprowadź poprawny klucz.")
-        st.stop()
+        # Weryfikacja klucza z konfiguracji
+        with st.spinner("Weryfikacja klucza OpenAI..."):
+            if not verify_openai_key(api_key):
+                st.sidebar.error("❌ Klucz z konfiguracji jest nieprawidłowy!")
+                config_key = None  # Wymusi wprowadzenie nowego klucza
+                api_key = None
+    
+    if not config_key:
+        # Brak klucza w konfiguracji - prośba o wprowadzenie
+        st.sidebar.warning("⚠️ Brak klucza OpenAI w konfiguracji")
+        st.sidebar.info("💡 Wprowadź klucz poniżej lub dodaj do .env/secrets")
         
+        user_key = st.sidebar.text_input(
+            "Podaj OpenAI API Key",
+            type="password",
+            placeholder="sk-proj-...",
+            help="Klucz API z platform.openai.com"
+        )
+        
+        if not user_key:
+            st.error("🔑 **Wymagany klucz OpenAI API**")
+            st.info("👈 Wprowadź klucz w sidebarze aby kontynuować")
+            st.info("💡 **Gdzie znaleźć klucz:** https://platform.openai.com/api-keys")
+            st.stop()
+        
+        # Weryfikacja wprowadzonego klucza
+        with st.spinner("Weryfikacja klucza OpenAI..."):
+            if verify_openai_key(user_key):
+                st.sidebar.success("✅ Klucz jest prawidłowy!")
+                api_key = user_key
+            else:
+                st.sidebar.error("❌ Nieprawidłowy klucz OpenAI API!")
+                st.error("🔑 **Nieprawidłowy klucz OpenAI API**")
+                st.error("Sprawdź klucz i spróbuj ponownie")
+                st.info("💡 **Wskazówki:**")
+                st.info("• Klucz musi zaczynać się od 'sk-'")
+                st.info("• Sprawdź czy klucz nie wygasł")
+                st.info("• Upewnij się, że masz środki na koncie OpenAI")
+                st.stop()
+    
     # Ustawienie klucza do dalszego użycia
-    env["OPENAI_API_KEY"] = api_key
+    if api_key:
+        env["OPENAI_API_KEY"] = api_key
+    else:
+        st.error("Błąd: Brak prawidłowego klucza OpenAI")
+        st.stop()
+    
+    # =============================================================================
+    # INICJALIZACJA STANU SESJI
+    # =============================================================================
 
     # Inicjalizacja stanu sesji dla przechowywania danych między interakcjami
     if "note_audio_bytes_md5" not in st.session_state:
