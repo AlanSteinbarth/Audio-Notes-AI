@@ -33,8 +33,8 @@ def check_dependencies():
             missing.append(package)
     
     if missing:
-        print(f"\n💡 Zainstaluj brakujące pakiety:")
-        print(f"pip install {' '.join(missing)}")
+        print("\n💡 Zainstaluj brakujące pakiety:")
+        print("pip install " + " ".join(missing))
         return False
     
     print("✅ Wszystkie zależności OK!")
@@ -74,12 +74,17 @@ def run_quick_test():
         
         # Test klienta OpenAI
         client = app.get_openai_client()
-        print("✅ Klient OpenAI: OK")
+        # Sprawdź czy klient działa
+        if client:
+            print("✅ Klient OpenAI: OK")
+        else:
+            print("❌ Klient OpenAI: Błąd")
+            return False
         
         print("✅ Aplikacja gotowa do uruchomienia!")
         return True
         
-    except Exception as e:
+    except (ImportError, ValueError, AttributeError) as e:
         print(f"❌ Błąd: {e}")
         return False
 
@@ -95,9 +100,11 @@ def run_streamlit():
             '--server.headless', 'false',
             '--server.port', '8501',
             '--browser.gatherUsageStats', 'false'
-        ])
+        ], check=True)
     except KeyboardInterrupt:
         print("\n👋 Aplikacja zatrzymana przez użytkownika")
+    except subprocess.CalledProcessError as e:
+        print(f"\n❌ Błąd uruchomienia Streamlit: {e}")
 
 def main():
     """Główna funkcja quick start"""
