@@ -39,22 +39,26 @@ STRUKTURA PLIKU:
 # IMPORTY I KONFIGURACJA
 # =============================================================================
 
+# Standardowe importy Python
 from io import BytesIO
-import streamlit as st
+import io
 import locale
 import logging
-import io
 import os
 import platform
-from dotenv import dotenv_values
+import time
+from datetime import datetime
 from hashlib import md5
+from pathlib import Path
+from typing import Optional
+
+# Zewnętrzne biblioteki
+import streamlit as st
+from dotenv import dotenv_values
 from openai import OpenAI
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, Distance, VectorParams
-from datetime import datetime
 from docx import Document
-from typing import Optional
-from pathlib import Path
 
 # Importy opcjonalne - tylko flagi, bez komunikatów Streamlit
 AUDIORECORDER_AVAILABLE = True
@@ -66,17 +70,22 @@ except (ImportError, OSError, RuntimeError) as e:
     audiorecorder = None
     print(f"⚠️ Audiorecorder nie jest dostępny: {e}")
     print("💡 Spróbuj reinstalację: pip uninstall streamlit-audiorecorder && pip install streamlit-audiorecorder")
+
 try:
     from fpdf import FPDF  # type: ignore
 except ImportError:
     FPDF_AVAILABLE = False
     FPDF = None
 
-# Dodaj import OpenAIError jeśli openai jest dostępne
+# Dodaj import OpenAIError - nowa biblioteka openai używa innej struktury błędów
 try:
-    from openai.error import OpenAIError  # type: ignore
+    from openai import OpenAIError  # type: ignore
 except ImportError:
-    OpenAIError = Exception
+    # Fallback dla starszych wersji OpenAI
+    try:
+        from openai.error import OpenAIError  # type: ignore
+    except ImportError:
+        OpenAIError = Exception
 
 # =============================================================================
 # SPRAWDZENIE ZALEŻNOŚCI SYSTEMOWYCH
@@ -137,12 +146,20 @@ except locale.Error:
 env = dotenv_values(".env")
 
 # Walidacja obecności wszystkich wymaganych zmiennych środowiskowych
-required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY"]  # usunięto OPENAI_API_KEY z wymagań
+required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY", "OPENAI_API_KEY"]
 
 # Sprawdź .env i Streamlit secrets
 def get_config_value(key):
     """Pobiera wartość z .env lub Streamlit secrets"""
-    return env.get(key) or (hasattr(st, 'secrets') and st.secrets.get(key))
+    # Pierwsza próba: .env
+    if key in env and env[key]:
+        return env[key]    # Druga próba: Streamlit secrets
+    try:
+        if hasattr(st, 'secrets') and key in st.secrets:
+            return st.secrets[key]
+    except (KeyError, AttributeError):
+        pass
+    return None
 
 missing_vars = []
 for var in required_env_vars:
@@ -179,7 +196,10 @@ QDRANT_COLLECTION_NAME = "notes"             # Nazwa kolekcji w bazie wektorowej
 
 def get_openai_client():
     """Tworzy i zwraca klienta OpenAI z kluczem API z zmiennych środowiskowych."""
-    return OpenAI(api_key=env["OPENAI_API_KEY"])
+    api_key = get_config_value("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("Brak klucza OpenAI API. Sprawdź konfigurację w .env lub Streamlit secrets.")
+    return OpenAI(api_key=api_key)
 
 def transcribe_audio(audio_bytes):
     """
@@ -220,8 +240,8 @@ def get_qdrant_client():
     """
     try:
         # Pobierz konfigurację z .env lub Streamlit secrets
-        qdrant_url = env.get("QDRANT_URL") or st.secrets.get("QDRANT_URL")
-        qdrant_key = env.get("QDRANT_API_KEY") or st.secrets.get("QDRANT_API_KEY")
+        qdrant_url = get_config_value("QDRANT_URL")
+        qdrant_key = get_config_value("QDRANT_API_KEY")
         
         if not qdrant_url or not qdrant_key:
             st.error("Brak konfiguracji Qdrant. Sprawdź .env lub Streamlit secrets.")
@@ -232,14 +252,14 @@ def get_qdrant_client():
             api_key=qdrant_key,
             timeout=60  # Zwiększony timeout dla uśpionych serwerów
         )
-          # Wake up serwer - próba prostego zapytania
+        
+        # Wake up serwer - próba prostego zapytania
         with st.spinner("🔄 Budzenie serwera Qdrant..."):
             try:
                 collections = client.get_collections()
                 logger.info("Qdrant aktywny, kolekcje: %d", len(collections.collections))
             except (ConnectionError, TimeoutError, OSError) as wake_error:
                 logger.warning("Pierwszy ping nieudany (serwer się budzi): %s", wake_error)
-                import time
                 time.sleep(3)  # Czekaj na przebudzenie
                 collections = client.get_collections()  # Drugi ping
                 
@@ -460,18 +480,22 @@ def generate_note_title(note_text):
 def main():
     """Główna funkcja aplikacji Streamlit zawierająca cały interfejs użytkownika."""
     # Konfiguracja strony Streamlit z tytułem i layoutem
-    st.set_page_config(page_title="🎤 Audio Notes AI 🤖", layout="centered")
-
-    # Sidebar: pole do podania klucza OpenAI
+    st.set_page_config(page_title="🎤 Audio Notes AI 🤖", layout="centered")    # Sidebar: pole do podania klucza OpenAI
     st.sidebar.header("🔑 Ustawienia API")
-    env_key = env.get("OPENAI_API_KEY", "")
-    api_key = st.sidebar.text_input("Podaj OpenAI API Key", value=env_key, type="password")
+    
+    # Pobierz klucz z konfiguracji lub jako domyślną wartość
+    default_key = get_config_value("OPENAI_API_KEY") or ""
+    api_key = st.sidebar.text_input("Podaj OpenAI API Key", value=default_key, type="password")
+    
+    # Sprawdź czy klucz jest dostępny
     if not api_key:
-        st.error("Podaj klucz OpenAI API w sidebarze lub pliku .env")
+        st.error("Podaj klucz OpenAI API w sidebarze, pliku .env lub Streamlit secrets")
         st.stop()
+        
     if not verify_openai_key(api_key):
-        st.error("Nieprawidłowy klucz OpenAI API! Sprawdź i wprowadź poprawny klucz w sidebarze lub pliku .env.")
+        st.error("Nieprawidłowy klucz OpenAI API! Sprawdź i wprowadź poprawny klucz.")
         st.stop()
+        
     # Ustawienie klucza do dalszego użycia
     env["OPENAI_API_KEY"] = api_key
 
