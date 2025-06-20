@@ -3,6 +3,12 @@
 </p>
 
 <p align="center">
+  <a href="https://audio-notes-ai.streamlit.app/" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-Streamlit%20Cloud-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Live Demo">
+  </a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/version-2.1.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://github.com/AlanSteinbarth/Audio-Notes-AI/workflows/CI/CD%20Pipeline%20-%20Enterprise%20Version%202.1.0/badge.svg" alt="Build Status">
@@ -16,6 +22,8 @@
 # 🎤 Audio Notes AI 🤖 - Enterprise Version 2.1.0
 
 > **🎉 Wersja 2.1.0 dostępna!** 🎤 Audio Notes AI 🤖 Enterprise działa na Windows, macOS i Linux oraz oferuje intuicyjne zarządzanie kluczami API. Wszystkie funkcjonalności działają na każdym systemie operacyjnym.
+
+> **🌐 [Przetestuj aplikację na żywo!](https://audio-notes-ai.streamlit.app/)** - Działająca wersja demo na Streamlit Cloud
 
 ---
 
@@ -60,6 +68,20 @@ Zaawansowany system notatek głosowych z AI-powered wyszukiwaniem semantycznym. 
 5. **Podaj klucz OpenAI**
    - Jeśli nie masz klucza w `.env`, wprowadź go w sidebarze aplikacji
    - Klucz jest automatycznie weryfikowany przed użyciem
+
+## 🌐 Live Demo
+
+**[▶️ Uruchom aplikację na Streamlit Cloud](https://audio-notes-ai.streamlit.app/)**
+
+Wypróbuj wszystkie funkcjonalności aplikacji bez instalacji:
+- 🎤 Nagrywanie i transkrypcja notatek głosowych
+- 🔍 Semantyczne wyszukiwanie z AI
+- 📤 Eksport do PDF, DOCX, TXT
+- 🏷️ Automatyczne kategoryzowanie
+
+*Uwaga: Demo używa zewnętrznych API (OpenAI, Qdrant) - niektóre funkcje mogą wymagać konfiguracji kluczy.*
+
+---
 
 ## 🛠️ Instalacja zależności systemowych
 
@@ -489,7 +511,9 @@ Szczegółowa dokumentacja API znajduje się w pliku [API.md](API.md).
 ## 🌩️ Deployment i Hosting
 
 ### Streamlit Cloud
-Aplikacja jest gotowa do deployment na Streamlit Cloud. Szczegółowe instrukcje w [DEPLOYMENT.md](DEPLOYMENT.md).
+Aplikacja jest dostępna na żywo pod adresem: **[https://audio-notes-ai.streamlit.app/](https://audio-notes-ai.streamlit.app/)**
+
+Szczegółowe instrukcje deployment w [DEPLOYMENT.md](DEPLOYMENT.md).
 
 **Kroki deployment:**
 1. Fork/clone repozytorium na GitHub
