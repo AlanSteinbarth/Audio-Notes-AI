@@ -61,7 +61,7 @@ AUDIORECORDER_AVAILABLE = True
 FPDF_AVAILABLE = True
 try:
     from audiorecorder import audiorecorder  # type: ignore
-except (ImportError, Exception) as e:
+except (ImportError, OSError, RuntimeError) as e:
     AUDIORECORDER_AVAILABLE = False
     audiorecorder = None
     print(f"⚠️ Audiorecorder nie jest dostępny: {e}")
@@ -232,14 +232,13 @@ def get_qdrant_client():
             api_key=qdrant_key,
             timeout=60  # Zwiększony timeout dla uśpionych serwerów
         )
-        
-        # Wake up serwer - próba prostego zapytania
+          # Wake up serwer - próba prostego zapytania
         with st.spinner("🔄 Budzenie serwera Qdrant..."):
             try:
                 collections = client.get_collections()
-                logger.info(f"Qdrant aktywny, kolekcje: {len(collections.collections)}")
-            except Exception as wake_error:
-                logger.warning(f"Pierwszy ping nieudany (serwer się budzi): {wake_error}")
+                logger.info("Qdrant aktywny, kolekcje: %d", len(collections.collections))
+            except (ConnectionError, TimeoutError, OSError) as wake_error:
+                logger.warning("Pierwszy ping nieudany (serwer się budzi): %s", wake_error)
                 import time
                 time.sleep(3)  # Czekaj na przebudzenie
                 collections = client.get_collections()  # Drugi ping
