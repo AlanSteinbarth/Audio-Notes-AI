@@ -63,13 +63,23 @@ from docx import Document
 # Importy opcjonalne - tylko flagi, bez komunikatów Streamlit
 AUDIORECORDER_AVAILABLE = True
 FPDF_AVAILABLE = True
+
+# Bezpieczny import audiorecorder z obsługą błędów Streamlit Cloud
 try:
     from audiorecorder import audiorecorder  # type: ignore
+    AUDIORECORDER_AVAILABLE = True
 except (ImportError, OSError, RuntimeError) as e:
+    # Streamlit Cloud może mieć problemy z komponentami
     AUDIORECORDER_AVAILABLE = False
     audiorecorder = None
     print(f"⚠️ Audiorecorder nie jest dostępny: {e}")
-    print("💡 Spróbuj reinstalację: pip uninstall streamlit-audiorecorder && pip install streamlit-audiorecorder")
+    print("💡 Aplikacja będzie działać z opcją uploadu plików")
+except Exception as e:  # pylint: disable=broad-except
+    # Streamlit może rzucać różne wyjątki podczas inicjalizacji komponentów
+    AUDIORECORDER_AVAILABLE = False
+    audiorecorder = None
+    print(f"⚠️ Audiorecorder - błąd inicjalizacji: {e}")
+    print("💡 Aplikacja będzie działać z opcją uploadu plików")
 
 try:
     from fpdf import FPDF  # type: ignore
@@ -518,9 +528,7 @@ def main():
         initialize_collection()
     except (ValueError, KeyError, ConnectionError) as e:
         log_error(e)
-        st.stop()
-
-    # Komunikaty o zależnościach systemowych
+        st.stop()    # Komunikaty o zależnościach systemowych
     if MISSING_DEPS:
         msg = f"Brakuje zależności systemowych: {', '.join(MISSING_DEPS)}.\n"
         if SYSTEM == "Darwin":
@@ -532,9 +540,8 @@ def main():
         else:
             msg += "Zainstaluj brakujące pakiety odpowiednio dla swojego systemu."
         st.warning(msg)
-    # Komunikaty o bibliotekach opcjonalnych
-    if not AUDIORECORDER_AVAILABLE:
-        st.info("Nagrywanie audio jest niedostępne. Zainstaluj streamlit-audiorecorder: pip install streamlit-audiorecorder")
+    
+    # Komunikaty o bibliotekach opcjonalnych (tylko FPDF)
     if not FPDF_AVAILABLE:
         st.info("Eksport PDF niedostępny. Zainstaluj fpdf: pip install fpdf")
 
@@ -545,8 +552,41 @@ def main():
     # ZAKŁADKA 1: DODAWANIE NOTATEK
     # =========================================================================
     with add_tab:
-        if audiorecorder is None:
-            st.info("Nagrywanie audio jest niedostępne. Zainstaluj streamlit-audiorecorder.")
+        # Sprawdzenie dostępności audiorecorder
+        if not AUDIORECORDER_AVAILABLE or audiorecorder is None:
+            st.info("🎤 Nagrywanie audio jest niedostępne na Streamlit Cloud")
+            st.info("💡 Użyj opcji uploadu pliku audio poniżej lub uruchom aplikację lokalnie")
+            
+            # Fallback - upload pliku audio
+            uploaded_audio = st.file_uploader(
+                "Wgraj plik audio (MP3, WAV, M4A)", 
+                type=['mp3', 'wav', 'm4a'],
+                help="Wgraj nagranie audio do transkrypcji"
+            )
+            
+            if uploaded_audio is not None:
+                # Odczytaj plik audio
+                audio_bytes = uploaded_audio.read()
+                st.session_state["note_audio_bytes"] = audio_bytes
+                
+                # Sprawdzenie czy plik się zmienił (hash MD5)
+                current_md5 = md5(audio_bytes).hexdigest()
+                if st.session_state["note_audio_bytes_md5"] != current_md5:
+                    st.session_state["note_audio_text"] = ""
+                    st.session_state["note_text"] = ""
+                    st.session_state["note_audio_bytes_md5"] = current_md5
+
+                # Wyświetlenie odtwarzacza audio
+                st.audio(audio_bytes)
+                
+                # Przycisk do uruchomienia transkrypcji
+                if st.button("Transkrybuj audio"):
+                    transcribed_text = transcribe_audio(audio_bytes)
+                    if transcribed_text:
+                        st.session_state["note_audio_text"] = transcribed_text
+                        st.success("Transkrypcja zakończona!")
+                    else:
+                        st.error("Błąd transkrypcji. Sprawdź format pliku.")
         else:
             # Komponent do nagrywania audio z konfigurowalnymi komunikatami
             note_audio = audiorecorder(
