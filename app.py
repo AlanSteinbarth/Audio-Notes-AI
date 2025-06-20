@@ -138,10 +138,27 @@ env = dotenv_values(".env")
 
 # Walidacja obecności wszystkich wymaganych zmiennych środowiskowych
 required_env_vars = ["QDRANT_URL", "QDRANT_API_KEY"]  # usunięto OPENAI_API_KEY z wymagań
-missing_vars = [var for var in required_env_vars if var not in env or not env[var]]
+
+# Sprawdź .env i Streamlit secrets
+def get_config_value(key):
+    """Pobiera wartość z .env lub Streamlit secrets"""
+    return env.get(key) or (hasattr(st, 'secrets') and st.secrets.get(key))
+
+missing_vars = []
+for var in required_env_vars:
+    if not get_config_value(var):
+        missing_vars.append(var)
+
 if missing_vars:
-    st.error(f"Brakuje wymaganych zmiennych środowiskowych: {', '.join(missing_vars)}")
-    st.info("Skopiuj plik .env.example do .env i uzupełnij wymagane wartości.")
+    st.error(f"Brakuje wymaganych zmiennych: {', '.join(missing_vars)}")
+    st.info("💡 **Streamlit Cloud**: Dodaj w Advanced Settings → Secrets")
+    st.info("💡 **Lokalnie**: Skopiuj .env.example do .env i uzupełnij")
+    st.code("""
+# Dla Streamlit Cloud w sekcji Secrets:
+QDRANT_URL = "https://your-qdrant-instance.com"
+QDRANT_API_KEY = "your-qdrant-api-key"
+OPENAI_API_KEY = "sk-your-openai-key"  # opcjonalne
+    """, language="toml")
     st.stop()
 
 # =============================================================================
@@ -196,16 +213,37 @@ def transcribe_audio(audio_bytes):
 @st.cache_resource
 def get_qdrant_client():
     """
-    Tworzy i zwraca klienta bazy danych Qdrant z cache'owaniem.
+    Tworzy i zwraca klienta bazy danych Qdrant z cache'owaniem i wake-up.
     
     Returns:
         QdrantClient: Skonfigurowany klient bazy danych Qdrant
     """
     try:
+        # Pobierz konfigurację z .env lub Streamlit secrets
+        qdrant_url = env.get("QDRANT_URL") or st.secrets.get("QDRANT_URL")
+        qdrant_key = env.get("QDRANT_API_KEY") or st.secrets.get("QDRANT_API_KEY")
+        
+        if not qdrant_url or not qdrant_key:
+            st.error("Brak konfiguracji Qdrant. Sprawdź .env lub Streamlit secrets.")
+            st.stop()
+        
         client = QdrantClient(
-            url=env["QDRANT_URL"],
-            api_key=env["QDRANT_API_KEY"]
+            url=qdrant_url,
+            api_key=qdrant_key,
+            timeout=60  # Zwiększony timeout dla uśpionych serwerów
         )
+        
+        # Wake up serwer - próba prostego zapytania
+        with st.spinner("🔄 Budzenie serwera Qdrant..."):
+            try:
+                collections = client.get_collections()
+                logger.info(f"Qdrant aktywny, kolekcje: {len(collections.collections)}")
+            except Exception as wake_error:
+                logger.warning(f"Pierwszy ping nieudany (serwer się budzi): {wake_error}")
+                import time
+                time.sleep(3)  # Czekaj na przebudzenie
+                collections = client.get_collections()  # Drugi ping
+                
         logger.info("Pomyślnie połączono z Qdrant")
         return client
     except (ConnectionError, ValueError, KeyError) as e:

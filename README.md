@@ -486,4 +486,31 @@ Szczegółowa dokumentacja API znajduje się w pliku [API.md](API.md).
 
 ---
 
+## 🌩️ Deployment i Hosting
+
+### Streamlit Cloud
+Aplikacja jest gotowa do deployment na Streamlit Cloud. Szczegółowe instrukcje w [DEPLOYMENT.md](DEPLOYMENT.md).
+
+**Kroki deployment:**
+1. Fork/clone repozytorium na GitHub
+2. Idź na [share.streamlit.io](https://share.streamlit.io)
+3. Połącz repozytorium
+4. W "Advanced settings" → "Secrets" dodaj:
+   ```toml
+   QDRANT_URL = "https://your-qdrant-instance.com"
+   QDRANT_API_KEY = "your-qdrant-api-key"
+   OPENAI_API_KEY = "sk-your-openai-key"  # opcjonalne
+   ```
+
+### Inne platformy
+- **Railway**: Ustaw env variables w dashboard
+- **Render**: Dodaj env vars w service settings  
+- **Heroku**: Użyj `heroku config:set`
+- **Docker**: Zobacz `docker-compose.yml`
+
+### Uwagi o serwerach Qdrant
+⚠️ **Uśpione serwery**: Qdrant Cloud może uśpić serwer po braku aktywności. Aplikacja automatycznie "budzi" serwer przy pierwszym połączeniu.
+
+---
+
 ⭐ **Podobał Ci się projekt? Zostaw gwiazdkę!** ⭐
