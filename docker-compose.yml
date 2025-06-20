@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  audio-notes-ai:
+    build: .
+    container_name: audio-notes-ai
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    volumes:
+      - ./db:/app/db
+      - ./exports:/app/exports
+      - audio-notes-data:/app/data
+    depends_on:
+      - qdrant
+    restart: unless-stopped
+    networks:
+      - audio-notes-network
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant-db
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    restart: unless-stopped
+    networks:
+      - audio-notes-network
+
+  # Optional: Redis for caching (future feature)
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - audio-notes-network
+    profiles:
+      - cache
+
+volumes:
+  qdrant-data:
+  redis-data:
+  audio-notes-data:
+
+networks:
+  audio-notes-network:
+    driver: bridge

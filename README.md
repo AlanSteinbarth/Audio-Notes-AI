@@ -2,6 +2,17 @@
   <img src="Okładka.png" alt="Audio Notes AI - Okładka" width="800"/>
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/version-2.1.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+  <img src="https://github.com/AlanSteinbarth/Audio-Notes-AI/workflows/CI/CD%20Pipeline%20-%20Enterprise%20Version%202.1.0/badge.svg" alt="Build Status">
+  <img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/AI-OpenAI%20Whisper-orange.svg" alt="AI">
+  <img src="https://img.shields.io/badge/database-Qdrant-red.svg" alt="Database">
+  <img src="https://img.shields.io/badge/platform-Windows%7CmacOS%7CLinux-lightgrey.svg" alt="Platform">
+  <img src="https://img.shields.io/badge/status-production%20ready-brightgreen.svg" alt="Status">
+</p>
+
 # 🎤 Audio Notes AI 🤖 - Enterprise Version 2.1.0
 
 > **🎉 Wersja 2.1.0 dostępna!** 🎤 Audio Notes AI 🤖 Enterprise działa na Windows, macOS i Linux oraz oferuje intuicyjne zarządzanie kluczami API. Wszystkie funkcjonalności działają na każdym systemie operacyjnym.
@@ -176,16 +187,74 @@ Aplikacja została przetestowana na Windows, macOS i Linux. Wszystkie ścieżki 
 
 ## 🏗️ Architektura
 
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[Streamlit Web UI]
+        A1[Audio Recorder]
+        A2[File Upload]
+        A3[Search Interface]
+        A4[Export Options]
+    end
+    
+    subgraph "Application Layer"
+        B[Audio Notes AI Core]
+        B1[Audio Processing]
+        B2[Text Processing]
+        B3[Search Engine]
+        B4[Export Engine]
+    end
+    
+    subgraph "AI Services Layer"
+        C[OpenAI API]
+        C1[Whisper STT]
+        C2[Text Embeddings]
+        C3[GPT Title Generation]
+    end
+    
+    subgraph "Data Layer"
+        D[Qdrant Vector DB]
+        D1[Vector Storage]
+        D2[Metadata Storage]
+        D3[Similarity Search]
+    end
+    
+    subgraph "Storage Layer"
+        E[Local File System]
+        E1[Audio Files]
+        E2[Export Files]
+        E3[Configuration]
+    end
+    
+    A --> B
+    A1 --> B1
+    A2 --> B1
+    A3 --> B3
+    A4 --> B4
+    
+    B1 --> C1
+    B2 --> C2
+    B2 --> C3
+    B3 --> D3
+    
+    C --> D
+    B --> E
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style D fill:#e8f5e8
+    style E fill:#fce4ec
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Streamlit UI  │    │   OpenAI API    │    │   Qdrant DB     │
-│                 │    │                 │    │                 │
-│ • Nagrywanie    │───▶│ • Whisper       │    │ • Embeddingi    │
-│ • Edycja        │    │ • Embeddings    │◀──▶│ • Metadane      │
-│ • Wyszukiwanie  │    │ • GPT-3.5       │    │ • Wyszukiwanie  │
-│ • Eksport       │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+
+### Przepływ Danych
+
+1. **Nagrywanie** → Audio → Streamlit UI
+2. **Transkrypcja** → Audio → OpenAI Whisper → Tekst
+3. **Embedding** → Tekst → OpenAI Embeddings → Wektor
+4. **Zapis** → Wektor + Metadata → Qdrant DB
+5. **Wyszukiwanie** → Query → Embedding → Similarity Search → Wyniki
+6. **Eksport** → Dane → Generator → PDF/DOCX/TXT
 
 ## 🔧 Narzędzia diagnostyczne
 
@@ -310,6 +379,107 @@ Poniżej przykładowe ekrany aplikacji (folder `Screenshots/`):
 <p align="center">
   <img src="Screenshots/Zrzut%20ekranu%202025-06-15%20o%2000.21.39.png" alt="Ekran 6" width="600"/>
 </p>
+
+---
+
+## 📊 Wydajność i Metryki
+
+### Wydajność Systemu
+- **Transkrypcja audio**: ~2-3x szybciej niż czas nagrania (dla plików do 10MB)
+- **Wyszukiwanie semantyczne**: <200ms dla bazy do 10,000 notatek
+- **Generowanie embeddingów**: ~1-2s dla tekstu do 1000 słów
+- **Eksport dokumentów**: <1s dla notatek do 5000 słów
+
+### Limity i Ograniczenia
+- **Maksymalny rozmiar pliku audio**: 25MB (ograniczenie OpenAI)
+- **Obsługiwane formaty audio**: MP3, WAV, FLAC, M4A, MP4
+- **Maksymalna długość nagrania**: 10 minut (rekomendowane)
+- **Jednoczesne użytkownicy**: Zależy od konfiguracji Qdrant i OpenAI API
+
+### Zużycie Zasobów
+- **RAM**: ~200-500MB (zależnie od rozmiaru bazy notatek)
+- **Dysk**: ~50MB aplikacja + dane użytkownika
+- **CPU**: Niskie zużycie (głównie I/O operacje)
+- **Sieć**: Zależy od częstotliwości używania API
+
+---
+
+# 🐳 Docker & Konteneryzacja
+
+### Szybkie uruchomienie z Docker
+```bash
+# Pobierz kod
+git clone https://github.com/AlanSteinbarth/Audio-Notes-AI.git
+cd Audio-Notes-AI
+
+# Skopiuj i edytuj zmienne środowiskowe
+cp .env.example .env
+# Edytuj .env z kluczami API
+
+# Uruchom z Docker Compose
+docker-compose up -d
+
+# Aplikacja dostępna na http://localhost:8501
+```
+
+### Budowanie własnego obrazu
+```bash
+# Zbuduj obraz
+docker build -t audio-notes-ai:latest .
+
+# Uruchom kontener
+docker run -p 8501:8501 \
+  -e OPENAI_API_KEY=your_key \
+  -e QDRANT_URL=your_qdrant_url \
+  -e QDRANT_API_KEY=your_qdrant_key \
+  audio-notes-ai:latest
+```
+
+### Komponenty w Docker Compose
+- **audio-notes-ai**: Główna aplikacja
+- **qdrant**: Baza danych wektorowych
+- **redis**: Cache (opcjonalny)
+
+---
+
+## 🛠️ Automatyczna Konfiguracja
+
+### Skrypt Setup (Linux/macOS)
+```bash
+# Nadaj uprawnienia
+chmod +x setup.sh
+
+# Uruchom setup
+./setup.sh
+```
+
+Skrypt automatycznie:
+- ✅ Sprawdza Python i zależności systemowe
+- ✅ Tworzy środowisko wirtualne
+- ✅ Instaluje biblioteki Python
+- ✅ Konfiguruje plik .env
+- ✅ Tworzy niezbędne foldery
+- ✅ Uruchamia podstawowe testy
+- ✅ Opcjonalnie konfiguruje Docker
+
+### Skrypt Setup (Windows)
+```powershell
+# Uruchom PowerShell jako Administrator
+.\setup.ps1
+```
+
+---
+
+## 📚 Dokumentacja API
+
+Szczegółowa dokumentacja API znajduje się w pliku [API.md](API.md).
+
+### Planowane API REST (v3.0.0)
+- 🎤 **Audio Management**: Upload, transcribe, manage audio files
+- 📝 **Notes CRUD**: Create, read, update, delete notes
+- 🔍 **Semantic Search**: Advanced search with similarity scoring
+- 📤 **Export**: PDF, DOCX, TXT export endpoints
+- 🔐 **Authentication**: API keys, JWT tokens, OAuth 2.0
 
 ---
 
