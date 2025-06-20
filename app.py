@@ -61,9 +61,11 @@ AUDIORECORDER_AVAILABLE = True
 FPDF_AVAILABLE = True
 try:
     from audiorecorder import audiorecorder  # type: ignore
-except ImportError:
+except (ImportError, Exception) as e:
     AUDIORECORDER_AVAILABLE = False
     audiorecorder = None
+    print(f"⚠️ Audiorecorder nie jest dostępny: {e}")
+    print("💡 Spróbuj reinstalację: pip uninstall streamlit-audiorecorder && pip install streamlit-audiorecorder")
 try:
     from fpdf import FPDF  # type: ignore
 except ImportError:

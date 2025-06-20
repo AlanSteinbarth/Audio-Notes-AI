@@ -310,19 +310,22 @@ Masz pomysł na nową funkcję? [Otwórz dyskusję](https://github.com/AlanStein
 
 ## 🐛 Rozwiązywanie problemów
 
-### Błędy transkrypcji
-- Sprawdź połączenie internetowe
-- Upewnij się, że klucz OpenAI API jest poprawny
-- Nagraj audio w cichym otoczeniu
+Szczegółowy przewodnik rozwiązywania problemów znajduje się w pliku [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
-### Problemy z wyszukiwaniem
-- Sprawdź połączenie z bazą Qdrant
-- Upewnij się, że kolekcja została zainicjalizowana
-- Spróbuj innych słów kluczowych
+### Najczęstsze problemy
 
-### Błędy eksportu
-- PDF: Sprawdź czy tekst zawiera znaki specjalne
-- DOCX: Upewnij się, że masz wystarczające uprawnienia do zapisu
+#### Problem z streamlit-audiorecorder
+```bash
+# Błąd: No such component directory
+pip uninstall streamlit-audiorecorder
+pip install streamlit-audiorecorder --no-cache-dir --force-reinstall
+```
+
+#### Aplikacja działa bez nagrywania
+Aplikacja automatycznie wykrywa dostępność bibliotek i:
+- ✅ Pokazuje nagrywanie jeśli audiorecorder działa
+- ✅ Pokazuje tylko upload plików jeśli audiorecorder nie działa
+- ✅ Wszystkie funkcje działają niezależnie od nagrywania
 
 ## 📝 Changelog
 
